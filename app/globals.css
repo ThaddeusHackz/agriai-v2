@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-green: #00c853;
+  --bg: #ffffff;
+  --text: #111111;
+  --text-secondary: #555555;
+  --border: #e5e7eb;
+  --chat-bg: #f8f9fa;
+  --input-bg: #ffffff;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Perplexity-style Chat */
+.chat-container {
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f1f1f1;
+}
+
+.message-bubble {
+  max-width: 80%;
+  padding: 16px 20px;
+  border-radius: 20px;
+  line-height: 1.6;
+  font-size: 15.5px;
+}
+
+.user-message {
+  background: #00c853;
+  color: white;
+  border-bottom-right-radius: 6px;
+}
+
+.ai-message {
+  background: #f1f3f5;
+  color: #111;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 6px;
+}
+
+/* Clean Input Area */
+.input-area {
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Admin Panel */
+.admin-card {
+  transition: all 0.2s ease;
+}
+
+.admin-card:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
