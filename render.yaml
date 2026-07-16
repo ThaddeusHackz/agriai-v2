@@ -4,23 +4,18 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: agriai-db
-          property: connectionString
       - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
       - key: TAVILY_API_KEY
         sync: false
+      - key: UNSPLASH_ACCESS_KEY
+        sync: false
       - key: NODE_ENV
         value: production
-
-databases:
-  - name: agriai-db
-    plan: free
-    region: oregon
