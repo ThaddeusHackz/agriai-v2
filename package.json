@@ -1,21 +1,26 @@
 {
-  "name": "agriai-new",
-  "version": "0.1.0",
+  "name": "agriai",
+  "version": "2.0.0",
   "private": true,
+  "description": "AgriAI 2.0 — Intelligent Farming Assistant for Ghana. Multilingual AI chat, voice, web search, crop disease detection, market prices, weather & full admin panel.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "framer-motion": "^12.42.2",
     "groq-sdk": "^1.3.0",
-    "lucide-react": "^1.24.0",
+    "lucide-react": "^0.468.0",
     "next": "16.2.10",
     "openai": "^6.47.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0",
     "sonner": "^2.0.7"
   },
   "devDependencies": {

@@ -1,31 +1,27 @@
-FROM node:20-alpine AS base
+# AgriAI 2.0 — production container
+FROM node:22-alpine AS base
+WORKDIR /app
 
-# Install dependencies only when needed
+# deps
 FROM base AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
-# Rebuild the source code
+# build
 FROM base AS builder
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Production image
+# runtime
 FROM base AS runner
-WORKDIR /app
-
 ENV NODE_ENV=production
-
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-
+COPY --from=builder /app/next.config.ts ./next.config.ts
 EXPOSE 3000
-
 CMD ["npm", "start"]
