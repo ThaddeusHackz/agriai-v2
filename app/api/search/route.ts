@@ -1,40 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+// ─── POST /api/search — standalone Tavily web search ─────────────────────────
 
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY || "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";
+import { NextRequest, NextResponse } from "next/server";
+import { searchWeb } from "@/lib/search";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
   try {
     const { query } = await request.json();
-
-    if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+    const q = (query || "").toString().trim().slice(0, 300);
+    if (!q) {
+      return NextResponse.json({ error: "Query is required" }, { status: 400 });
     }
-
-    const response = await fetch('https://api.tavily.com/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TAVILY_API_KEY}`
-      },
-      body: JSON.stringify({
-        query: query,
-        search_depth: "advanced",
-        include_answer: true,
-        max_results: 6
-      })
-    });
-
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Search failed' }, { status: 500 });
-    }
-
-    const data = await response.json();
-
+    const result = await searchWeb(q);
     return NextResponse.json({
-      answer: data.answer,
-      results: data.results || []
+      answer: result.answer || null,
+      results: result.sources,
+      demo: result.demo,
     });
-  } catch (error) {
-    return NextResponse.json({ error: 'Web search failed' }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 }

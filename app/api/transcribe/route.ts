@@ -1,33 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+// ─── POST /api/transcribe — OpenAI Whisper voice input ───────────────────────
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "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",
-});
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) {
+    return NextResponse.json({ error: "Voice input is not configured (missing OPENAI_API_KEY)" }, { status: 501 });
+  }
   try {
     const formData = await request.formData();
-    const audio = formData.get('audio') as File;
-
-    if (!audio) {
-      return NextResponse.json({ error: 'No audio file' }, { status: 400 });
+    const audio = formData.get("audio");
+    if (!(audio instanceof File)) {
+      return NextResponse.json({ error: "No audio file received" }, { status: 400 });
+    }
+    if (audio.size > 25 * 1024 * 1024) {
+      return NextResponse.json({ error: "Audio file too large (max 25MB)" }, { status: 413 });
     }
 
+    const openai = new OpenAI({ apiKey: key });
     const transcription = await openai.audio.transcriptions.create({
       file: audio,
       model: "whisper-1",
       response_format: "json",
     });
 
-    return NextResponse.json({ 
-      text: transcription.text 
-    });
-
-  } catch (error) {
-    console.error('Whisper Error:', error);
-    return NextResponse.json({ 
-      error: 'Transcription failed' 
-    }, { status: 500 });
+    return NextResponse.json({ text: transcription.text });
+  } catch (err) {
+    console.error("[transcribe] Whisper error:", err);
+    return NextResponse.json({ error: "Transcription failed. Please type instead." }, { status: 500 });
   }
 }
