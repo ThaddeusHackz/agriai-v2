@@ -18,7 +18,7 @@
 | **Expert Mode** | Agronomist-grade advice: NPK ratios, rates, IPM strategies |
 | **Agent Mode** | Autonomous research agent with structured answers |
 | **6 languages** | English, Twi, Ga, Ewe, Hausa, French |
-| **Crop Disease Detection** | Upload a photo → Groq vision model returns disease, confidence %, treatment plan |
+| **Crop Disease Detection** | Upload a photo → Google Gemini vision model returns disease, confidence %, treatment plan |
 | **Market Prices** | Curated Ghana market board + live web intel refresh |
 | **Weather** | 5-day forecast for Accra, Kumasi, Tamale, Takoradi, Cape Coast + farming advice |
 | **Newsletter & contact** | Subscriber list & messages land in the admin panel |
@@ -65,7 +65,7 @@ npm run dev          # → http://localhost:3000
 **`.env.local`:**
 
 ```env
-GROQ_API_KEY=your_groq_key            # chat + crop disease vision
+GEMINI_API_KEY=your_gemini_key        # chat + crop disease vision
 OPENAI_API_KEY=your_openai_key        # Whisper voice input
 TAVILY_API_KEY=your_tavily_key        # live web search
 ELEVENLABS_API_KEY=your_elevenlabs_key # voice output
@@ -97,7 +97,7 @@ Full step-by-step guide with screenshots-level detail: **[DEPLOYMENT.md](./DEPLO
 Quick version:
 1. Push this repository to GitHub.
 2. Go to [render.com](https://render.com) → **New → Blueprint** → paste the repo URL.
-3. Render reads `render.yaml` and creates the service; then open **Environment** and paste your 4 API keys + admin credentials into the `sync: false` variables.
+3. Render reads `render.yaml` and creates the service; then open **Environment** and paste your 5 API keys + admin credentials into the `sync: false` variables.
 4. Deploy → open `https://agriai.onrender.com` 🎉
 
 ---
@@ -112,7 +112,7 @@ npm run build       # production build (32 routes)
 
 ## 🛠 Tech stack
 
-Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Groq (Llama 3.3 70B + vision) · OpenAI Whisper · ElevenLabs · Tavily · Open-Meteo · bcryptjs · Framer Motion · React Markdown
+Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Google Gemini (2.5 Flash + vision) · OpenAI Whisper · ElevenLabs · Tavily · Open-Meteo · bcryptjs · Framer Motion · React Markdown
 
 ## 👥 Team — University of Ghana • 2026
 

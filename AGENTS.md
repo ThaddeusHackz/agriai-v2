@@ -13,7 +13,7 @@ voice via OpenAI Whisper + ElevenLabs, web search via Tavily.
   prices, feedback, history, subscribe, contact, track, admin/*)
 - `lib/db.ts` — JSON data engine, seeds `./data/db.json` on first run
 - `lib/auth.ts` — bcrypt passwords, cookie sessions, login rate limiting
-- `lib/ai.ts` — Groq wrapper with offline fallback (local knowledge base)
+- `lib/ai.ts` — Gemini wrapper with offline fallback (local knowledge base)
 - `design/` — original UI mockups (white mode, Perplexity-style)
 
 ## Rules

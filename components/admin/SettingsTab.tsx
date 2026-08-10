@@ -44,7 +44,7 @@ export default function SettingsTab() {
           </div>
           <div>
             <dt className="label">AI providers</dt>
-            <dd className="text-[var(--text)]">Groq · OpenAI Whisper · ElevenLabs · Tavily</dd>
+            <dd className="text-[var(--text)]">Google Gemini · OpenAI Whisper · ElevenLabs · Tavily</dd>
           </div>
           <div>
             <dt className="label">Auth</dt>

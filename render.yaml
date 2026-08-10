@@ -16,13 +16,15 @@ services:
         value: production
       - key: NEXT_PUBLIC_SITE_URL
         value: https://agriai.onrender.com
-      - key: GROQ_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: TAVILY_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: UNSPLASH_ACCESS_KEY
         sync: false
       - key: ADMIN_EMAIL
         sync: false

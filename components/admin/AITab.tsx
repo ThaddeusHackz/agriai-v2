@@ -21,17 +21,16 @@ interface ChatSettings {
   agentPrompt: string;
 }
 
+// Google Gemini models. Source of truth: https://ai.google.dev/gemini-api/docs/models
 const MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
-  "llama3-70b-8192",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ];
 
+// Gemini multimodal (vision-capable) models for crop disease detection.
 const VISION_MODELS = [
-  "llama-3.2-11b-vision-preview",
-  "llama-3.2-90b-vision-preview",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
 ];
 
 export default function AITab() {
@@ -73,15 +72,15 @@ export default function AITab() {
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="label">Chat model (Groq)</label>
+            <label className="label">Chat model (Gemini)</label>
             <select className="input" value={s.model} onChange={(e) => set({ model: e.target.value })}>
-              {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {[...new Set([s.model, ...MODELS])].map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
             <label className="label">Vision model (disease detection)</label>
             <select className="input" value={s.visionModel} onChange={(e) => set({ visionModel: e.target.value })}>
-              {VISION_MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {[...new Set([s.visionModel, ...VISION_MODELS])].map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>

@@ -1,7 +1,7 @@
 "use client";
 
 // ─── Crop Disease Detection ──────────────────────────────────────────────────
-// Upload a photo of a crop/leaf → Groq vision model returns the disease,
+// Upload a photo of a crop/leaf → Gemini vision model returns the disease,
 // confidence, description and treatment plan. Fully offline-safe.
 
 import React, { useRef, useState } from "react";
@@ -163,7 +163,7 @@ export default function DiseaseDetector() {
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: "var(--primary)" }} />
               <div className="font-semibold text-[var(--deep)]">Analyzing your crop…</div>
-              <p className="text-[0.82rem] text-[var(--muted)] mt-1">Vision model: {settings.chat.model === "llama-3.3-70b-versatile" ? "llama-3.2-11b-vision" : settings.chat.model}</p>
+              <p className="text-[0.82rem] text-[var(--muted)] mt-1">Powered by Google Gemini vision</p>
             </div>
           )}
 

@@ -21,7 +21,7 @@ export function getLanguage(code: string): LanguageInfo {
   return LANGUAGES.find((l) => l.code === code) ?? LANGUAGES[0];
 }
 
-/** Instruction embedded in the AI system prompt so Groq replies in-language. */
+/** Instruction embedded in the AI system prompt so Gemini replies in-language. */
 export function languageInstruction(code: string): string {
   const map: Record<string, string> = {
     en: "English",
