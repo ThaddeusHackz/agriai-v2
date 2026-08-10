@@ -1,41 +1,49 @@
-// ─── AgriAI intelligence layer ───────────────────────────────────────────────
-// Wraps Groq (chat + vision). Every call degrades gracefully:
+// ─── AgriAI intelligence layer (Google Gemini) ───────────────────────────────
+// Wraps Google Gemini (chat + vision). Every call degrades gracefully:
 // if the API is unreachable or no key is set, a rich local knowledge-base
-// answer is returned so the product always works (full live AI on Render).
+// answer is returned so the product always works (full live AI when the key is set).
 
-import Groq from "groq-sdk";
+import { GoogleGenAI } from "@google/genai";
 import { getDB } from "./db";
 import { getLanguage, languageInstruction } from "./languages";
 
-let groq: Groq | null = null;
+let aiClient: GoogleGenAI | null = null;
 
-export function getGroq(): Groq | null {
-  const key = process.env.GROQ_API_KEY;
+/** Returns a Gemini client, or null when GEMINI_API_KEY is unset (offline demo). */
+export function getGemini(): GoogleGenAI | null {
+  const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
-  if (!groq) {
-    groq = new Groq({
-      apiKey: key,
-      // GROQ_BASE_URL is optional — used for testing with a local mock server
-      ...(process.env.GROQ_BASE_URL ? { baseURL: process.env.GROQ_BASE_URL } : {}),
-    });
-  }
-  return groq;
+  if (!aiClient) aiClient = new GoogleGenAI({ apiKey: key });
+  return aiClient;
 }
 
-export interface ChatOptions {
-  language: string;
-  mode: "standard" | "expert" | "agent";
-  webSearch: boolean;
-  history: { role: "user" | "assistant"; content: string }[];
-  webContext?: { text: string; sources: { title: string; url: string }[] };
-  signal?: AbortSignal;
+/** Parse a data-URL (data:image/...;base64,...) or raw base64 into Gemini inline parts. */
+function parseImageData(input: string): { mimeType: string; data: string } {
+  const m = input.match(/^data:([^;]+);base64,(.*)$/);
+  if (m) return { mimeType: m[1], data: m[2] };
+  return { mimeType: "image/jpeg", data: input.replace(/\s/g, "") };
 }
 
-export interface ChatResult {
-  text: string;
+export interface DiseaseResult {
+  detected: string;
+  confidence: number;
+  description: string;
+  treatment: string[];
   demo: boolean;
-  sources?: { title: string; url: string }[];
 }
+
+const FALLBACK_DISEASE: DiseaseResult = {
+  detected: "Unable to analyze (offline demo mode)",
+  confidence: 0,
+  description:
+    "The crop disease analyzer needs the Gemini API key to run the vision model. Connect the key (see README) and try again — on the live site this returns the detected disease, confidence score, and treatment plan.",
+  treatment: [
+    "Remove and destroy severely infected plants",
+    "Apply recommended fungicide / insecticide per MoFA guidelines",
+    "Consult your district MoFA agricultural extension officer",
+  ],
+  demo: true,
+};
 
 const FALLBACK_ANSWERS: { match: RegExp; answer: string }[] = [
   {
@@ -94,119 +102,42 @@ export function localAnswer(question: string, language: string, mode: string): s
   return `I'm AgriAI, your ${modeLabel} assistant for Ghanaian agriculture 🌱\n\nI can help you with:\n- 🌽 **Crops** — planting seasons, varieties, yields (maize, cocoa, cassava, yam, rice…)\n- 🐛 **Pests & diseases** — identification and treatment\n- 🧪 **Soil & fertilizer** — NPK programs, manure, pH\n- 💰 **Market prices** — check the Market Prices section\n- 🌦️ **Weather** — check the Weather section\n\nTry asking: *"Best time to plant maize in Ghana"* or *"How to treat cassava mosaic disease"*.\n\n> I'm currently in **offline demo mode** — connect my API keys (see README) to unlock live AI answers in ${lang.native}.`;
 }
 
-// ─── Chat generation ─────────────────────────────────────────────────────────
-
-export async function generateChat(opts: ChatOptions): Promise<ChatResult> {
-  const client = getGroq();
-  const db = getDB();
-  const settings = db.settings;
-  const chatCfg = settings.chat;
-
-  const systemBase =
-    opts.mode === "expert"
-      ? chatCfg.expertPrompt
-      : opts.mode === "agent"
-        ? chatCfg.agentPrompt
-        : chatCfg.systemPrompt;
-
-  let system = `${systemBase}\n\n${languageInstruction(opts.language)}\nYou are AgriAI.`;
-
-  if (opts.webContext && opts.webContext.text) {
-    const sourcesBlock = opts.webContext.sources
-      .map((s, i) => `[${i + 1}] ${s.title} — ${s.url}`)
-      .join("\n");
-    system += `\n\nCURRENT WEB SEARCH RESULTS (cite these with [1], [2]…):\n${opts.webContext.text}\n\nSOURCES:\n${sourcesBlock}`;
-  } else if (opts.webSearch) {
-    system += "\n\n(Web search was enabled but returned no results. Answer from your knowledge and say so.)";
-  }
-
-  if (!client) {
-    return {
-      text: localAnswer(opts.history[opts.history.length - 1]?.content || "", opts.language, opts.mode),
-      demo: true,
-    };
-  }
-
-  try {
-    const completion = await client.chat.completions.create(
-      {
-        model: chatCfg.model,
-        temperature: chatCfg.temperature,
-        max_tokens: chatCfg.maxTokens,
-        messages: [
-          { role: "system", content: system },
-          ...opts.history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
-        ],
-      },
-      { signal: opts.signal }
-    );
-    const text = completion.choices[0]?.message?.content?.trim() || "";
-    if (!text) throw new Error("empty completion");
-    return { text, demo: false, sources: opts.webContext?.sources };
-  } catch (err) {
-    console.error("[ai] Groq chat failed, using local answer:", (err as Error).message);
-    return {
-      text: localAnswer(opts.history[opts.history.length - 1]?.content || "", opts.language, opts.mode),
-      demo: true,
-    };
-  }
-}
-
 // ─── Vision (crop disease detection) ─────────────────────────────────────────
 
-export interface DiseaseResult {
-  detected: string;
-  confidence: number;
-  description: string;
-  treatment: string[];
-  demo: boolean;
-}
-
-const FALLBACK_DISEASE: DiseaseResult = {
-  detected: "Unable to analyze (offline demo mode)",
-  confidence: 0,
-  description:
-    "The crop disease analyzer needs the Groq API key to run the vision model. Connect the key (see README) and try again — on the live site this returns the detected disease, confidence score, and treatment plan.",
-  treatment: [
-    "Remove and destroy severely infected plants",
-    "Apply recommended fungicide / insecticide per MoFA guidelines",
-    "Consult your district MoFA agricultural extension officer",
-  ],
-  demo: true,
-};
-
 export async function detectCropDisease(
-  imageBase64: string,
+  imageInput: string,
   language: string
 ): Promise<DiseaseResult> {
-  const client = getGroq();
+  const client = getGemini();
   if (!client) return FALLBACK_DISEASE;
   const model = getDB().settings.chat.visionModel;
-
+  const { mimeType, data } = parseImageData(imageInput);
   try {
-    const completion = await client.chat.completions.create({
+    const response = await client.models.generateContent({
       model,
-      temperature: 0.2,
-      max_tokens: 600,
-      messages: [
+      contents: [
         {
           role: "user",
-          content: [
+          parts: [
             {
-              type: "text",
               text: `You are a crop disease detection expert for Ghanaian agriculture. Analyze this photo of a crop/plant.
 Respond in ${language === "en" ? "English" : "English with a short summary in the farmer's language"}.
 Return STRICT JSON with exactly this shape:
 {"detected":"disease or condition name (or 'Healthy plant')","confidence":0-100,"description":"2-3 sentence description of symptoms and cause","treatment":["step1","step2","step3","step4"]}
 If the image is not a plant, set detected to "Not a plant image" and confidence 0.`,
             },
-            { type: "image_url", image_url: { url: imageBase64 } },
+            { inlineData: { mimeType, data } },
           ],
         },
       ],
+      config: {
+        temperature: 0.2,
+        maxOutputTokens: 1024,
+        // Disable Gemini 2.5 thinking for fast, predictable, clean JSON output.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
-
-    const raw = completion.choices[0]?.message?.content || "";
+    const raw = response.text || "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("no JSON in vision response");
     const parsed = JSON.parse(jsonMatch[0]);
@@ -218,7 +149,7 @@ If the image is not a plant, set detected to "Not a plant image" and confidence 
       demo: false,
     };
   } catch (err) {
-    console.error("[ai] Vision failed:", (err as Error).message);
+    console.error("[ai] Gemini vision failed:", (err as Error).message);
     return FALLBACK_DISEASE;
   }
 }

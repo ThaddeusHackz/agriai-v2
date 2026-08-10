@@ -50,10 +50,12 @@ const DEFAULT_SETTINGS: AppSettings = {
     newsletter: true,
   },
   chat: {
-    model: "llama-3.3-70b-versatile",
-    visionModel: "llama-3.2-11b-vision-preview",
+    // Google Gemini models (replaced Groq, whose IDs were decommissioned).
+    // See https://ai.google.dev/gemini-api/docs/models
+    model: "gemini-2.5-flash", // chat (fast, multimodal)
+    visionModel: "gemini-2.5-flash", // crop disease detection (multimodal)
     temperature: 0.7,
-    maxTokens: 700,
+    maxTokens: 1024,
     webSearchDefault: false,
     defaultMode: "standard",
     placeholder: "Ask about crops, weather, market prices…",

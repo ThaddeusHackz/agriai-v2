@@ -1,7 +1,7 @@
 // ─── POST /api/chat — AgriAI conversation engine ─────────────────────────────
 // Supports: standard / expert / agent modes, web search grounding with
 // citations, multilingual replies, chat persistence, and graceful offline
-// fallback so the product never breaks.
+// fallback so the product never breaks. Powered by Google Gemini.
 
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -13,7 +13,7 @@ import {
   uid,
 } from "@/lib/db";
 import { searchWeb, contextBlock } from "@/lib/search";
-import { getGroq, localAnswer } from "@/lib/ai";
+import { getGemini, localAnswer } from "@/lib/ai";
 import { languageInstruction } from "@/lib/languages";
 
 export const runtime = "nodejs";
@@ -91,25 +91,34 @@ export async function POST(request: NextRequest) {
       let demo = false;
       let sources = webContext?.sources || [];
 
-      const client = getGroq();
+      const client = getGemini();
       if (client) {
         try {
-          const completion = await client.chat.completions.create(
-            {
-              model: chatCfg.model,
+          // Build Gemini conversation: prior turns + the new user message.
+          // Gemini uses roles "user"/"model"; the system prompt is passed via config.
+          const contents = [
+            ...history.slice(-8).map((m) => ({
+              role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
+              parts: [{ text: m.content }],
+            })),
+            { role: "user" as const, parts: [{ text: message }] },
+          ];
+
+          const response = await client.models.generateContentStream({
+            model: chatCfg.model,
+            contents,
+            config: {
+              systemInstruction: system,
               temperature: chatCfg.temperature,
-              max_tokens: chatCfg.maxTokens,
-              stream: true,
-              messages: [
-                { role: "system", content: system },
-                ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
-                { role: "user", content: message },
-              ],
+              maxOutputTokens: chatCfg.maxTokens,
+              abortSignal: request.signal,
+              // Disable Gemini 2.5 thinking for fast, clean streamed answers.
+              thinkingConfig: { thinkingBudget: 0 },
             },
-            { signal: request.signal }
-          );
-          for await (const chunk of completion) {
-            const delta = chunk.choices[0]?.delta?.content || "";
+          });
+
+          for await (const chunk of response) {
+            const delta = chunk.text || "";
             if (delta) {
               fullText += delta;
               send("delta", { text: delta });

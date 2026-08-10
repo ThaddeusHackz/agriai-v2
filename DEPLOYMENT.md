@@ -9,7 +9,7 @@ This guide walks you through deploying the complete AgriAI platform (frontend + 
 - A **GitHub account** with this repository pushed to it
 - A **Render account** (free at [render.com](https://render.com) — sign in with GitHub)
 - Your 4 API keys (already in your `.env.local`):
-  - `GROQ_API_KEY`
+  - `GEMINI_API_KEY`
   - `OPENAI_API_KEY`
   - `TAVILY_API_KEY`
   - `ELEVENLABS_API_KEY`
@@ -40,7 +40,7 @@ git push origin arena/019fe6f7-agriai-v2
 
 That's it — the blueprint already configures:
 - Node runtime, free plan, Oregon region
-- Build: `npm install && npm run build`
+- Build: `npm ci --include=dev && npm run build`
 - Start: `npm start`
 - Health check on `/`
 
@@ -58,7 +58,7 @@ That's it — the blueprint already configures:
 |---|---|
 | `NODE_ENV` | `production` (set by blueprint) |
 | `NEXT_PUBLIC_SITE_URL` | `https://agriai.onrender.com` (or your custom domain later) |
-| `GROQ_API_KEY` | *your Groq key* |
+| `GEMINI_API_KEY` | *your Gemini key* |
 | `OPENAI_API_KEY` | *your OpenAI key* |
 | `TAVILY_API_KEY` | *your Tavily key* |
 | `ELEVENLABS_API_KEY` | *your ElevenLabs key* |
@@ -115,7 +115,7 @@ Everything you save (hero text, colors, prices, prompts…) updates the live sit
 
 | Symptom | Fix |
 |---|---|
-| Chat answers are "offline demo" | `GROQ_API_KEY` missing/wrong in Render Environment → re-add → deploy |
+| Chat answers are "offline demo" | `GEMINI_API_KEY` missing/wrong in Render Environment → re-add → deploy |
 | Voice input fails | `OPENAI_API_KEY` missing, or browser not Chrome — enable mic permission |
 | "Listen" button errors | `ELEVENLABS_API_KEY` missing or account quota used |
 | No source chips with Web Search | `TAVILY_API_KEY` missing, or search genuinely returned nothing |

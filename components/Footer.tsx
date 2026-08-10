@@ -129,7 +129,7 @@ export default function Footer() {
       <div className="border-t">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[0.78rem] text-[var(--muted)]">
           <span>© {year} {settings.siteName} — University of Ghana • Intelligent Farming for Ghana 🇬🇭</span>
-          <span>Built with Next.js · Groq · OpenAI Whisper · ElevenLabs · Tavily</span>
+          <span>Built with Next.js · Google Gemini · OpenAI Whisper · ElevenLabs · Tavily</span>
         </div>
       </div>
     </footer>

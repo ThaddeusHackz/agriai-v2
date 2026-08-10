@@ -1,4 +1,4 @@
-// ─── POST /api/vision — crop disease detection (Groq vision) ─────────────────
+// ─── POST /api/vision — crop disease detection (Gemini vision) ───────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { detectCropDisease } from "@/lib/ai";
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Image too large (max ~4MB)" }, { status: 413 });
     }
 
-    // Normalize to a data URL Groq accepts
+    // Normalize to a base64 data URL Gemini accepts
     if (!image.startsWith("data:")) {
       if (image.startsWith("data:image")) {
         // fine

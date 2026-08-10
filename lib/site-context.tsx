@@ -60,7 +60,7 @@ const DEFAULTS: PublicSettings = {
     quickPrompts: ["Best time to plant maize in Ghana"],
     webSearchDefault: false,
     defaultMode: "standard",
-    model: "llama-3.3-70b-versatile",
+    model: "gemini-2.5-flash",
   },
   stats: [{ label: "Farmers Reached", value: "12,400+" }],
   contactEmail: "admin@agriai.gh",
