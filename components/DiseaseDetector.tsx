@@ -120,7 +120,7 @@ export default function DiseaseDetector() {
                 <span className="inline-flex w-16 h-16 rounded-3xl items-center justify-center mb-4 text-white shadow-lg group-hover:scale-105 transition" style={{ background: "var(--primary)" }}>
                   <ImagePlus className="w-8 h-8" />
                 </span>
-                <div className="font-bold text-[1.05rem] text-[var(--deep)]">Drop a crop photo here</div>
+                <div className="font-bold text-[1.05rem] text-[var(--ink)]">Drop a crop photo here</div>
                 <p className="mt-1.5 text-[0.85rem] text-[var(--muted)]">
                   or click to browse · JPG/PNG · max 4MB
                 </p>
@@ -145,7 +145,7 @@ export default function DiseaseDetector() {
           </div>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 text-[0.85rem] text-[#b3261e] bg-[#fdecea] border border-[#f5c6c2] rounded-2xl px-4 py-3">
+            <div className="mt-4 flex items-center gap-2 text-[0.85rem] text-[#ffb4a2] bg-[rgba(255,107,107,0.08)] border border-[rgba(255,107,107,0.3)] rounded-2xl px-4 py-3">
               <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
             </div>
           )}
@@ -162,7 +162,7 @@ export default function DiseaseDetector() {
           {analyzing && (
             <div className="flex flex-col items-center justify-center h-64 text-center">
               <Loader2 className="w-10 h-10 animate-spin mb-4" style={{ color: "var(--primary)" }} />
-              <div className="font-semibold text-[var(--deep)]">Analyzing your crop…</div>
+              <div className="font-semibold text-[var(--ink)]">Analyzing your crop…</div>
               <p className="text-[0.82rem] text-[var(--muted)] mt-1">Powered by Google Gemini vision</p>
             </div>
           )}
@@ -186,7 +186,7 @@ export default function DiseaseDetector() {
                   </span>
                   <div>
                     <div className="text-[0.7rem] font-bold uppercase tracking-wider text-[var(--muted)]">Diagnosis</div>
-                    <h3 className="font-bold text-[1.1rem] text-[var(--deep)] leading-tight">{result.detected}</h3>
+                    <h3 className="font-bold text-[1.1rem] text-[var(--ink)] leading-tight">{result.detected}</h3>
                   </div>
                 </div>
               </div>

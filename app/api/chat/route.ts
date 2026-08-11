@@ -14,6 +14,7 @@ import {
 } from "@/lib/db";
 import { searchWeb, contextBlock } from "@/lib/search";
 import { getGemini, localAnswer } from "@/lib/ai";
+import { cloudflareChat, cloudflareConfigured } from "@/lib/cloudflare";
 import { languageInstruction } from "@/lib/languages";
 
 export const runtime = "nodejs";
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
 
       let fullText = "";
       let demo = false;
+      let provider = "local"; // "gemini" | "cloudflare" | "local"
       let sources = webContext?.sources || [];
 
       const client = getGemini();
@@ -125,15 +127,41 @@ export async function POST(request: NextRequest) {
             }
           }
           if (!fullText.trim()) throw new Error("empty stream");
+          provider = "gemini";
         } catch (err) {
-          console.error("[chat] stream failed, falling back:", (err as Error).message);
-          fullText = localAnswer(message, language, mode);
-          demo = true;
-          sources = [];
+          console.error("[chat] Gemini stream failed, trying Cloudflare:", (err as Error).message);
+          fullText = "";
         }
-      } else {
+      }
+
+      // 2) Cloudflare Workers AI fallback (Llama 3.3 70B)
+      if (!fullText && cloudflareConfigured()) {
+        try {
+          const cfMessages = [
+            { role: "system" as const, content: system },
+            ...history.slice(-8).map((m) => ({
+              role: (m.role === "assistant" ? "assistant" : "user") as "user" | "assistant",
+              content: m.content,
+            })),
+            { role: "user" as const, content: message },
+          ];
+          fullText = await cloudflareChat(cfMessages, {
+            maxTokens: chatCfg.maxTokens,
+            temperature: chatCfg.temperature,
+            signal: request.signal,
+          });
+          provider = "cloudflare";
+        } catch (err) {
+          console.error("[chat] Cloudflare fallback failed:", (err as Error).message);
+          fullText = "";
+        }
+      }
+
+      // 3) Local knowledge base — the product never breaks
+      if (!fullText) {
         fullText = localAnswer(message, language, mode);
         demo = true;
+        provider = "local";
         sources = [];
       }
 
@@ -189,7 +217,7 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      send("done", { text: fullText, demo, sources, searchDemo });
+      send("done", { text: fullText, demo, sources, searchDemo, provider });
       controller.close();
     },
     cancel() {

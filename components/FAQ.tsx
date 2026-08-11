@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "Can I use voice on any phone?",
-    a: "Yes. On any smartphone with a browser (Chrome recommended), tap the microphone button and speak. If your browser doesn't support voice, AgriAI falls back to OpenAI Whisper transcription.",
+    a: "Yes. On any smartphone with a browser (Chrome recommended), tap the microphone button and speak. If your browser doesn't support voice, AgriAI falls back to Gemini transcription.",
   },
   {
     q: "How accurate is crop disease detection?",
@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: "Who built AgriAI?",
-    a: "A team of four University of Ghana students: Nana Ware Henry Opoku (lead developer), Thaddeus Nii Teiko Tagoe, Comfort Poedza and Edmond Nana Yaw Boateng.",
+    a: "AgriAI was designed and built by Thaddeus Nii Teiko Tagoe, a Computer Science student at the University of Ghana — with guidance from his lecturers.",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function FAQ() {
               onClick={() => setOpen(open === i ? null : i)}
               className="w-full flex items-center justify-between gap-4 px-6 py-4.5 text-left hover:bg-[var(--surface)]/50 transition"
             >
-              <span className="flex items-center gap-3 font-semibold text-[0.95rem] text-[var(--deep)]">
+              <span className="flex items-center gap-3 font-semibold text-[0.95rem] text-[var(--ink)]">
                 <MessageCircleQuestion className="w-4.5 h-4.5 shrink-0" style={{ color: "var(--primary)" }} />
                 {f.q}
               </span>

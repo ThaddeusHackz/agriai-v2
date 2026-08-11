@@ -19,7 +19,7 @@ export default function ContentTab() {
     });
   }, []);
 
-  if (!s) return <div className="h-40 animate-pulse rounded-3xl bg-white border border-[var(--border)]" />;
+  if (!s) return <div className="h-40 animate-pulse rounded-3xl bg-[rgba(255,255,255,0.045)] border border-[var(--border)]" />;
 
   const set = (patch: Partial<PublicSettings>) => setS({ ...s, ...patch });
 
@@ -49,7 +49,7 @@ export default function ContentTab() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="card rounded-3xl p-6 space-y-4">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Brand</h3>
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Brand</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="label">Site name</label>
@@ -63,7 +63,7 @@ export default function ContentTab() {
       </div>
 
       <div className="card rounded-3xl p-6 space-y-4">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Hero section</h3>
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Hero section</h3>
         <div>
           <label className="label">Hero title</label>
           <input className="input" value={s.heroTitle} onChange={(e) => set({ heroTitle: e.target.value })} />
@@ -96,7 +96,7 @@ export default function ContentTab() {
       </div>
 
       <div className="card rounded-3xl p-6 space-y-4">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Announcement bar</h3>
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Announcement bar</h3>
         <label className="flex items-center gap-2.5 text-[0.88rem] text-[var(--text)]">
           <input type="checkbox" className="w-4 h-4 rounded accent-[var(--primary)]" checked={s.announcementEnabled} onChange={(e) => set({ announcementEnabled: e.target.checked })} />
           Show announcement bar
@@ -105,7 +105,7 @@ export default function ContentTab() {
       </div>
 
       <div className="card rounded-3xl p-6 space-y-4">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Chat assistant</h3>
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Chat assistant</h3>
         <div>
           <label className="label">Quick prompts (one per line)</label>
           <textarea
@@ -122,7 +122,7 @@ export default function ContentTab() {
       </div>
 
       <div className="card rounded-3xl p-6 space-y-4">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Footer</h3>
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Footer</h3>
         <div>
           <label className="label">Contact email</label>
           <input className="input" value={s.contactEmail} onChange={(e) => set({ contactEmail: e.target.value })} />

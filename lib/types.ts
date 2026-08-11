@@ -115,6 +115,7 @@ export interface AppSettings {
     team: boolean;
     faq: boolean;
     newsletter: boolean;
+    studio: boolean;
   };
   chat: {
     model: string;

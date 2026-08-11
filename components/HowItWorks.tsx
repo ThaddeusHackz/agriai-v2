@@ -52,7 +52,7 @@ export default function HowItWorks() {
             <span className="relative inline-flex w-12 h-12 rounded-2xl items-center justify-center text-white shadow-md" style={{ background: "var(--primary)" }}>
               <s.icon className="w-5.5 h-5.5" />
             </span>
-            <h3 className="relative mt-4 font-bold text-[1.05rem] text-[var(--deep)]">{s.title}</h3>
+            <h3 className="relative mt-4 font-bold text-[1.05rem] text-[var(--ink)]">{s.title}</h3>
             <p className="relative mt-2 text-[0.86rem] leading-relaxed text-[var(--muted)]">{s.desc}</p>
           </motion.div>
         ))}

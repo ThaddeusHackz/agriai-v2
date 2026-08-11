@@ -41,21 +41,21 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer id="contact" className="border-t bg-[#fbfdfc]">
+    <footer id="contact" className="border-t bg-[var(--bg)]">
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid gap-10 lg:grid-cols-3">
         {/* brand */}
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-2xl flex items-center justify-center text-white shadow-md" style={{ background: "var(--primary)" }}>
+            <span className="w-9 h-9 rounded-2xl flex items-center justify-center text-[#03230f] shadow-md" style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-strong))" }}>
               <Leaf className="w-5 h-5" />
             </span>
-            <span className="font-bold text-[1.35rem] tracking-tight text-[var(--deep)]">{settings.siteName}</span>
+            <span className="font-display font-bold text-[1.35rem] tracking-tight text-[var(--ink)]">{settings.siteName}<span className="text-[var(--primary)]">.</span></span>
           </div>
           <p className="mt-4 text-[0.88rem] leading-relaxed text-[var(--muted)] max-w-xs">
             {settings.footerText}. Intelligent farming tools for every Ghanaian farmer — in the language you speak.
           </p>
           <a href="/admin" className="mt-5 inline-flex items-center gap-1.5 btn btn-ghost text-[0.8rem] px-4 py-2">
-            <ShieldCheck className="w-4 h-4" /> Admin Panel
+            <ShieldCheck className="w-4 h-4" style={{ color: "var(--primary)" }} /> Admin Panel
           </a>
         </div>
 
@@ -68,16 +68,16 @@ export default function Footer() {
               <li><a href="#disease-detection" className="text-[var(--muted)] hover:text-[var(--primary-strong)]">Disease Detection</a></li>
               <li><a href="#market-prices" className="text-[var(--muted)] hover:text-[var(--primary-strong)]">Market Prices</a></li>
               <li><a href="#weather" className="text-[var(--muted)] hover:text-[var(--primary-strong)]">Weather</a></li>
+              <li><a href="#studio" className="text-[var(--muted)] hover:text-[var(--primary-strong)]">AI Studio</a></li>
               <li><a href="#features" className="text-[var(--muted)] hover:text-[var(--primary-strong)]">Features</a></li>
             </ul>
           </div>
           <div>
-            <div className="label">The Team</div>
+            <div className="label">About</div>
             <ul className="space-y-2.5 text-[0.85rem] text-[var(--muted)]">
-              <li>Nana Ware Henry Opoku</li>
-              <li>Thaddeus Nii Teiko Tagoe</li>
-              <li>Comfort Poedza</li>
-              <li>Edmond Nana Yaw Boateng</li>
+              <li><span className="font-semibold text-[var(--text)]">Thaddeus Nii Teiko Tagoe</span></li>
+              <li>Founder & Lead Developer</li>
+              <li>University of Ghana 🇬🇭</li>
               <li className="pt-1">
                 <a href={`mailto:${settings.contactEmail}`} className="inline-flex items-center gap-1.5 font-semibold text-[var(--primary-strong)]">
                   <Mail className="w-3.5 h-3.5" /> {settings.contactEmail}
@@ -128,8 +128,8 @@ export default function Footer() {
 
       <div className="border-t">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[0.78rem] text-[var(--muted)]">
-          <span>© {year} {settings.siteName} — University of Ghana • Intelligent Farming for Ghana 🇬🇭</span>
-          <span>Built with Next.js · Google Gemini · OpenAI Whisper · ElevenLabs · Tavily</span>
+          <span>© {year} {settings.siteName} — built by Thaddeus Tagoe • Intelligent Farming for Ghana 🇬🇭</span>
+          <span>Next.js · Google Gemini · Cloudflare Workers AI · OpenWeather · ElevenLabs · PostgreSQL</span>
         </div>
       </div>
     </footer>

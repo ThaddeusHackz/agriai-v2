@@ -81,7 +81,7 @@ export default function UsersTab() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="card rounded-3xl p-6">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)] flex items-center gap-2 mb-4">
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)] flex items-center gap-2 mb-4">
           <UserPlus className="w-4.5 h-4.5" style={{ color: "var(--primary)" }} /> Add an admin or editor
         </h3>
         <form onSubmit={add} className="grid sm:grid-cols-2 gap-3">
@@ -99,7 +99,7 @@ export default function UsersTab() {
       </div>
 
       <div className="card rounded-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b bg-white font-bold text-[0.98rem] text-[var(--deep)]">
+        <div className="px-6 py-4 border-b bg-[rgba(255,255,255,0.045)] font-bold text-[0.98rem] text-[var(--ink)]">
           Admin accounts ({users.length})
         </div>
         <div className="divide-y divide-[var(--border)]">
@@ -109,7 +109,7 @@ export default function UsersTab() {
                 {u.role === "admin" ? <ShieldCheck className="w-5 h-5" /> : <UserIcon className="w-5 h-5" />}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-[0.9rem] text-[var(--deep)] truncate">
+                <div className="font-semibold text-[0.9rem] text-[var(--ink)] truncate">
                   {u.name} {me?.id === u.id && <span className="text-[0.68rem] text-[var(--primary-strong)] font-bold">(you)</span>}
                 </div>
                 <div className="text-[0.76rem] text-[var(--muted)]">
@@ -121,7 +121,7 @@ export default function UsersTab() {
                 <KeyRound className="w-3.5 h-3.5" /> Password
               </button>
               {me?.id !== u.id && (
-                <button onClick={() => remove(u.id)} className="p-2 rounded-lg hover:bg-[#fdecea] text-[#b3261e]" title="Delete user">
+                <button onClick={() => remove(u.id)} className="p-2 rounded-lg hover:bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]" title="Delete user">
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}

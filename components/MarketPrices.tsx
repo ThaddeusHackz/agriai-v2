@@ -65,12 +65,12 @@ export default function MarketPrices() {
         transition={{ duration: 0.5 }}
         className="card rounded-3xl overflow-hidden"
       >
-        <div className="px-6 py-4 border-b flex flex-wrap items-center justify-between gap-3 bg-white">
+        <div className="px-6 py-4 border-b flex flex-wrap items-center justify-between gap-3 bg-[rgba(255,255,255,0.045)]">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-xl flex items-center justify-center text-white" style={{ background: "var(--primary)" }}>
               <CircleDollarSign className="w-4.5 h-4.5" />
             </span>
-            <span className="font-bold text-[0.95rem] text-[var(--deep)]">Ghana Market Price Board</span>
+            <span className="font-bold text-[0.95rem] text-[var(--ink)]">Ghana Market Price Board</span>
             <span className="text-[0.72rem] text-[var(--muted)] bg-[var(--surface)] px-2.5 py-1 rounded-full">
               updated {new Date().toLocaleDateString("en-GH", { day: "numeric", month: "short" })}
             </span>
@@ -82,8 +82,8 @@ export default function MarketPrices() {
         </div>
 
         {live && (
-          <div className="mx-6 mt-4 rounded-2xl bg-[#f0faf3] border border-[#cdeeda] px-4 py-3 text-[0.83rem]">
-            <div className="font-bold text-[var(--deep)] flex items-center gap-1.5 mb-1">
+          <div className="mx-6 mt-4 rounded-2xl bg-[rgba(16,185,129,0.07)] border border-[rgba(16,185,129,0.25)] px-4 py-3 text-[0.83rem] text-[var(--muted)]">
+            <div className="font-bold text-[var(--ink)] flex items-center gap-1.5 mb-1">
               <ExternalLink className="w-3.5 h-3.5" /> Live market intel
             </div>
             <p className="text-[var(--muted)] leading-relaxed">{live.text}</p>
@@ -122,25 +122,25 @@ export default function MarketPrices() {
                 : prices.map((p) => (
                     <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)]/50 transition">
                       <td className="px-6 py-3.5">
-                        <div className="font-semibold text-[0.9rem] text-[var(--deep)]">{p.crop}</div>
+                        <div className="font-semibold text-[0.9rem] text-[var(--ink)]">{p.crop}</div>
                         {p.note && <div className="text-[0.72rem] text-[var(--muted)] mt-0.5">{p.note}</div>}
                       </td>
                       <td className="px-4 py-3.5 text-[0.85rem] text-[var(--muted)]">{p.market}</td>
                       <td className="px-4 py-3.5 text-right">
-                        <span className="font-bold text-[0.95rem]" style={{ color: "var(--deep)" }}>{ghs(p.price)}</span>
+                        <span className="font-bold text-[0.95rem]" style={{ color: "var(--ink)" }}>{ghs(p.price)}</span>
                       </td>
                       <td className="px-4 py-3.5 text-[0.8rem] text-[var(--muted)] hidden md:table-cell">{p.unit}</td>
                       <td className="px-4 py-3.5 hidden sm:table-cell">
                         {p.trend === "up" ? (
-                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#1a8f3c] bg-[#e8f7ec] px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#6ee7a0] bg-[rgba(16,185,129,0.12)] border border-[rgba(16,185,129,0.3)] px-2.5 py-1 rounded-full">
                             <TrendingUp className="w-3.5 h-3.5" /> Rising
                           </span>
                         ) : p.trend === "down" ? (
-                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#b3261e] bg-[#fdecea] px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#ffb4a2] bg-[rgba(255,107,107,0.12)] border border-[rgba(255,107,107,0.3)] px-2.5 py-1 rounded-full">
                             <TrendingDown className="w-3.5 h-3.5" /> Falling
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#6b7280] bg-[#f3f4f6] px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[0.75rem] font-bold text-[var(--muted)] bg-[var(--surface)] border border-[var(--border)] px-2.5 py-1 rounded-full">
                             <Minus className="w-3.5 h-3.5" /> Stable
                           </span>
                         )}

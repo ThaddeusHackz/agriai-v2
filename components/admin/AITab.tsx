@@ -44,7 +44,7 @@ export default function AITab() {
     });
   }, []);
 
-  if (!s) return <div className="h-40 animate-pulse rounded-3xl bg-white border border-[var(--border)]" />;
+  if (!s) return <div className="h-40 animate-pulse rounded-3xl bg-[rgba(255,255,255,0.045)] border border-[var(--border)]" />;
 
   const set = (patch: Partial<ChatSettings>) => setS({ ...s, ...patch });
 
@@ -67,7 +67,7 @@ export default function AITab() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="card rounded-3xl p-6">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)] flex items-center gap-2 mb-5">
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)] flex items-center gap-2 mb-5">
           <Brain className="w-4.5 h-4.5" style={{ color: "var(--primary)" }} /> Model configuration
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">

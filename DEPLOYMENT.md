@@ -1,6 +1,6 @@
 # 🚀 Deploy AgriAI 2.0 on Render.com — Step-by-Step Guide
 
-This guide walks you through deploying the complete AgriAI platform (frontend + backend + admin panel + database) on Render's **free tier** in about 10 minutes.
+This guide walks you through deploying the complete AgriAI platform (frontend + backend + admin panel + **PostgreSQL database**) on Render's **free tier** in about 10 minutes.
 
 ---
 
@@ -8,25 +8,27 @@ This guide walks you through deploying the complete AgriAI platform (frontend + 
 
 - A **GitHub account** with this repository pushed to it
 - A **Render account** (free at [render.com](https://render.com) — sign in with GitHub)
-- Your 4 API keys (already in your `.env.local`):
-  - `GEMINI_API_KEY`
-  - `OPENAI_API_KEY`
-  - `TAVILY_API_KEY`
-  - `ELEVENLABS_API_KEY`
-- Your chosen admin email + password (defaults: `admin@agriai.gh` / `AgriAI@2026Admin` — **change after first login**)
+- Your API keys:
+  - `GEMINI_API_KEY` — Google AI Studio (ai.google.dev) — powers chat, crop-disease vision & voice transcription
+  - `CLOUDFLARE_API_KEY` + `CLOUDFLARE_ACCOUNT_ID` — Cloudflare dashboard → *My Profile → API Tokens* (token with **Workers AI** permission; Account ID is on the right sidebar of the dashboard) — powers the fallback LLM & the AI Studio image generator
+  - `OPENWEATHER_API_KEY` — openweathermap.org → *API Keys* (free tier is enough) — powers weather forecasts
+  - `TAVILY_API_KEY` *(optional)* — tavily.com — live web search
+  - `ELEVENLABS_API_KEY` *(optional)* — elevenlabs.io — voice output
+- Your chosen admin email + password (defaults: `admin@agriai.gh` / set your own strong password)
+
+> 💡 Only `GEMINI_API_KEY` is truly required for full live AI. Everything else has a built-in fallback.
 
 ---
 
 ## Step 1 — Push the repository to GitHub
 
 ```bash
-# in the project folder
 git add -A
-git commit -m "AgriAI 2.0 — full rebuild"
-git push origin arena/019fe6f7-agriai-v2
+git commit -m "AgriAI 2.0 — Gemini + Cloudflare + OpenWeather + PostgreSQL"
+git push origin arena/019ff1f3-agriai-v2
 ```
 
-> ⚠️ **Never commit `.env.local`** — it's gitignored. Render gets the keys from its Environment dashboard instead (Step 4).
+> ⚠️ **Never commit `.env.local`** — it's gitignored. Render gets the keys from its Environment dashboard instead (Step 3).
 
 ---
 
@@ -35,14 +37,17 @@ git push origin arena/019fe6f7-agriai-v2
 1. Log in to [dashboard.render.com](https://dashboard.render.com)
 2. Click **New ➜ Blueprint** (top-right)
 3. Click **Connect repository** and pick your repo (`ThaddeusHackz/agriai-v2`)
-4. Render reads the included **`render.yaml`** and shows one service: `agriai`
-5. Click **Apply** → Render starts the first build automatically
+4. Render reads the included **`render.yaml`** and shows:
+   - a **PostgreSQL database** (`agriai-db`) — created automatically 🎉
+   - the **web service** (`agriai`) with `DATABASE_URL` already wired to it
+5. Click **Apply** → Render provisions the database and starts the first build automatically
 
 That's it — the blueprint already configures:
 - Node runtime, free plan, Oregon region
 - Build: `npm ci --include=dev && npm run build`
 - Start: `npm start`
 - Health check on `/`
+- `DATABASE_URL` from the managed Postgres
 
 **Build time on free tier:** ~3–6 minutes. You'll see `✓ Ready` in the logs when done.
 
@@ -56,15 +61,17 @@ That's it — the blueprint already configures:
 
 | Key | Value |
 |---|---|
-| `NODE_ENV` | `production` (set by blueprint) |
-| `NEXT_PUBLIC_SITE_URL` | `https://agriai.onrender.com` (or your custom domain later) |
-| `GEMINI_API_KEY` | *your Gemini key* |
-| `OPENAI_API_KEY` | *your OpenAI key* |
-| `TAVILY_API_KEY` | *your Tavily key* |
-| `ELEVENLABS_API_KEY` | *your ElevenLabs key* |
+| `GEMINI_API_KEY` | *your Google Gemini key* |
+| `CLOUDFLARE_API_KEY` | *your Cloudflare API token* |
+| `CLOUDFLARE_ACCOUNT_ID` | *your Cloudflare account ID* |
+| `OPENWEATHER_API_KEY` | *your OpenWeather key* |
+| `TAVILY_API_KEY` | *your Tavily key (optional)* |
+| `ELEVENLABS_API_KEY` | *your ElevenLabs key (optional)* |
 | `ADMIN_EMAIL` | `admin@agriai.gh` |
 | `ADMIN_PASSWORD` | *a strong password — this seeds your admin login* |
 | `ADMIN_NAME` | `AgriAI Admin` |
+
+(`NODE_ENV`, `NEXT_PUBLIC_SITE_URL` and `DATABASE_URL` are already set by the blueprint.)
 
 4. Click **Save Changes** — Render redeploys automatically.
 
@@ -78,57 +85,30 @@ That's it — the blueprint already configures:
 
 **First-run checklist:**
 
-- [ ] Homepage loads (hero + chat + sections)
-- [ ] Type a question in the chat → streaming answer with markdown
-- [ ] Toggle **Web Search** → answer includes `[1][2]` source chips
-- [ ] **Voice input** mic button works (Chrome on desktop/Android)
-- [ ] **Listen** button on an answer plays audio (ElevenLabs)
-- [ ] Upload a crop photo in **Crop Disease Detection** → diagnosis + confidence
-- [ ] Market Prices board + **Live intel** button
-- [ ] Weather section shows a 5-day forecast
+- [ ] Homepage loads with the dark aurora theme & animated 3D logo
+- [ ] Chat answers live (asks Gemini) — you'll see the **⚡ Gemini** badge under answers
+- [ ] If Gemini fails, you'll see the **☁️ Cloudflare AI** badge (fallback works)
+- [ ] Crop disease detection works (`/disease` section — upload a photo)
+- [ ] **AI Studio** generates farm images (Cloudflare Flux)
+- [ ] Weather shows **live** data from OpenWeather (the "cached forecast" chip disappears)
+- [ ] Market Prices board loads
+- [ ] `/admin` login works with your seeded credentials
+
+**Database check:** Admin panel → *Settings* → you should see **PostgreSQL ● connected**. Restart the service and confirm chats/subscribers survive the restart (that's the database doing its job).
 
 ---
 
-## Step 5 — Admin panel
+## FAQ
 
-1. Open **`https://agriai.onrender.com/admin`**
-2. Sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` you set
-3. **Immediately** change the password: *Admin Users → Password*
-4. Explore the tabs: Dashboard, Content, Appearance, AI Settings, Market Prices, Knowledge Base, Messages, Users, Feedback, Subscribers, Settings
+**Q: The free Postgres expires (Render free databases last 30 days)?**
+A: Correct — Render's free Postgres is for testing. When you're ready, upgrade the database plan (or switch to Neon/Supabase) and just change `DATABASE_URL` — no code changes needed.
 
-Everything you save (hero text, colors, prices, prompts…) updates the live site **instantly** — no redeploy needed. Data persists in `./data/db.json` on the Render disk.
+**Q: Do I need all the keys?**
+A: Only `GEMINI_API_KEY` for live AI answers. Without others: weather falls back to Open-Meteo, search runs offline, voice output is disabled, and the AI Studio hides gracefully. The site always works.
 
-> ⚠️ **Note for the free tier:** Render's free web services **spin down after 15 minutes of inactivity** and take ~30–60s to wake on the next visit. Data on disk persists. To keep it always-on, upgrade to the Starter plan ($7/mo) — no code changes needed.
-
----
-
-## Step 6 — Custom domain (optional)
-
-1. Service → **Settings → Custom Domain**
-2. Add e.g. `agriai.gh` or `agriai.example.com`
-3. At your domain registrar add the CNAME record Render shows you
-4. Update `NEXT_PUBLIC_SITE_URL` to the new URL and re-deploy
+**Q: How do I change admin password?**
+A: Admin panel → *Admin Users* → edit → set new password. (Or change `ADMIN_PASSWORD` env var and reset the database in Settings → Danger zone.)
 
 ---
 
-## Troubleshooting
-
-| Symptom | Fix |
-|---|---|
-| Chat answers are "offline demo" | `GEMINI_API_KEY` missing/wrong in Render Environment → re-add → deploy |
-| Voice input fails | `OPENAI_API_KEY` missing, or browser not Chrome — enable mic permission |
-| "Listen" button errors | `ELEVENLABS_API_KEY` missing or account quota used |
-| No source chips with Web Search | `TAVILY_API_KEY` missing, or search genuinely returned nothing |
-| Admin login says invalid | You're using the pre-seed password before `ADMIN_PASSWORD` was set — set it in Environment and deploy; or reset via `data/db.json` (delete file → redeploy or restart service) |
-| Build fails | Check the build logs: usually a missing env var at build time isn't fatal; ensure `npm install` completed |
-| Site slow after idle | Free-tier cold start — normal; upgrade plan for always-on |
-
-## Security notes
-
-- The admin panel is rate-limited (5 failed logins → 15 min lockout) and sessions expire after 7 days.
-- API keys live **only** in Render's Environment dashboard — never in code or GitHub.
-- If you ever committed a key to a public repo, **rotate it** in the provider's dashboard.
-
----
-
-*AgriAI 2.0 — University of Ghana • 2026*
+*Design: 2026 next-gen dark aurora theme · glassmorphism · animated gradients · 3D logo · PostgreSQL-backed.*

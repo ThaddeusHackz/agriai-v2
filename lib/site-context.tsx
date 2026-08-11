@@ -27,6 +27,7 @@ export interface PublicSettings {
     team: boolean;
     faq: boolean;
     newsletter: boolean;
+    studio: boolean;
   };
   chat: {
     placeholder: string;
@@ -53,7 +54,7 @@ const DEFAULTS: PublicSettings = {
   accentColor: "#f9bc13",
   showSections: {
     features: true, prices: true, weather: true, disease: true,
-    how: true, testimonials: true, team: true, faq: true, newsletter: true,
+    how: true, testimonials: true, team: true, faq: true, newsletter: true, studio: true,
   },
   chat: {
     placeholder: "Ask about crops, weather, market prices…",

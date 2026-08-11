@@ -1,15 +1,22 @@
-// ─── POST /api/transcribe — OpenAI Whisper voice input ───────────────────────
+// ─── POST /api/transcribe — Gemini voice input ───────────────────────────────
+// Browser speech recognition is the primary voice input; this route is the
+// fallback for browsers without SpeechRecognition. Audio is transcribed by
+// Google Gemini (gemini-2.5-flash understands audio natively) — no extra
+// provider needed, the GEMINI_API_KEY powers chat, vision AND voice.
 
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { getGemini } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
-    return NextResponse.json({ error: "Voice input is not configured (missing OPENAI_API_KEY)" }, { status: 501 });
+  const client = getGemini();
+  if (!client) {
+    return NextResponse.json(
+      { error: "Voice input is not configured (missing GEMINI_API_KEY)" },
+      { status: 501 }
+    );
   }
   try {
     const formData = await request.formData();
@@ -21,16 +28,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Audio file too large (max 25MB)" }, { status: 413 });
     }
 
-    const openai = new OpenAI({ apiKey: key });
-    const transcription = await openai.audio.transcriptions.create({
-      file: audio,
-      model: "whisper-1",
-      response_format: "json",
+    const buffer = Buffer.from(await audio.arrayBuffer());
+    const mimeType = audio.type || "audio/webm";
+
+    const response = await client.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Transcribe the speech in this audio recording verbatim. Return only the transcribed text, no commentary, no quotation marks.",
+            },
+            { inlineData: { mimeType, data: buffer.toString("base64") } },
+          ],
+        },
+      ],
+      config: {
+        temperature: 0,
+        maxOutputTokens: 1024,
+        // Disable Gemini 2.5 thinking for fast, clean transcription.
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
-    return NextResponse.json({ text: transcription.text });
+    const text = (response.text || "").trim();
+    if (!text) throw new Error("empty transcription");
+    return NextResponse.json({ text });
   } catch (err) {
-    console.error("[transcribe] Whisper error:", err);
+    console.error("[transcribe] Gemini transcription error:", (err as Error).message);
     return NextResponse.json({ error: "Transcription failed. Please type instead." }, { status: 500 });
   }
 }

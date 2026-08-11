@@ -70,11 +70,11 @@ export default function PricesTab() {
     <div className="space-y-5">
       <div className="card rounded-3xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">
+          <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">
             {editing?.id ? "Edit price" : "Add new price"}
           </h3>
           {editing?.id && (
-            <button onClick={() => setEditing(null)} className="text-[0.78rem] text-[var(--muted)] hover:text-[var(--deep)] inline-flex items-center gap-1">
+            <button onClick={() => setEditing(null)} className="text-[0.78rem] text-[var(--muted)] hover:text-[var(--ink)] inline-flex items-center gap-1">
               <X className="w-3.5 h-3.5" /> Cancel edit
             </button>
           )}
@@ -98,8 +98,8 @@ export default function PricesTab() {
       </div>
 
       <div className="card rounded-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b bg-white flex items-center justify-between">
-          <h3 className="font-bold text-[0.98rem] text-[var(--deep)]">Current prices ({prices.length})</h3>
+        <div className="px-6 py-4 border-b bg-[rgba(255,255,255,0.045)] flex items-center justify-between">
+          <h3 className="font-bold text-[0.98rem] text-[var(--ink)]">Current prices ({prices.length})</h3>
         </div>
         {loading ? (
           <div className="p-8 text-center text-[var(--muted)] text-[0.85rem]">Loading…</div>
@@ -119,12 +119,12 @@ export default function PricesTab() {
               <tbody>
                 {prices.map((p) => (
                   <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface)]/50">
-                    <td className="px-6 py-3 font-semibold text-[0.88rem] text-[var(--deep)]">{p.crop}</td>
+                    <td className="px-6 py-3 font-semibold text-[0.88rem] text-[var(--ink)]">{p.crop}</td>
                     <td className="px-4 py-3 text-[0.85rem] text-[var(--muted)]">{p.market}</td>
                     <td className="px-4 py-3 text-right font-bold text-[0.9rem]">{ghs(p.price)}</td>
                     <td className="px-4 py-3 text-[0.8rem] text-[var(--muted)]">{p.unit}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[0.72rem] font-bold px-2.5 py-1 rounded-full ${p.trend === "up" ? "bg-[#e8f7ec] text-[#1a8f3c]" : p.trend === "down" ? "bg-[#fdecea] text-[#b3261e]" : "bg-[#f3f4f6] text-[#6b7280]"}`}>
+                      <span className={`text-[0.72rem] font-bold px-2.5 py-1 rounded-full ${p.trend === "up" ? "bg-[rgba(16,185,129,0.12)] text-[#6ee7a0]" : p.trend === "down" ? "bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]" : "bg-[var(--surface)] text-[var(--muted)]"}`}>
                         {p.trend}
                       </span>
                     </td>
@@ -133,7 +133,7 @@ export default function PricesTab() {
                         <button onClick={() => setEditing({ ...p })} className="p-2 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => remove(p.id)} className="p-2 rounded-lg hover:bg-[#fdecea] text-[#b3261e]" title="Delete">
+                        <button onClick={() => remove(p.id)} className="p-2 rounded-lg hover:bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

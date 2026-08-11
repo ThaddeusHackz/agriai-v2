@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "rootDir": "../",
+    "outDir": "/tmp/pgtest",
+    "types": ["node"]
+  },
+  "include": ["../lib/pg-store.ts", "../lib/db.ts", "../lib/types.ts", "../lib/utils.ts"]
+}
