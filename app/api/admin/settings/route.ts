@@ -1,26 +1,41 @@
 // ─── /api/admin/settings — site content & appearance (admin only) ────────────
+// GET returns settings + database health. POST patches settings. An extra
+// action "sync" forces an immediate mirror of the document store to Postgres.
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { getDB, mutate } from "@/lib/db";
+import { postgresHealth, forcePostgresSave } from "@/lib/pg-store";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const user = getSessionUser(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ settings: getDB().settings });
+  const db = getDB();
+  const database = await postgresHealth();
+  return NextResponse.json({ settings: db.settings, database });
 }
 
 export async function POST(request: NextRequest) {
   const user = getSessionUser(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const patch = await request.json().catch(() => ({}));
-  if (!patch || typeof patch !== "object") {
+  const body = await request.json().catch(() => ({}));
+  if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
+  // Special action: force a manual sync to Postgres
+  if (body.action === "sync") {
+    const ok = await forcePostgresSave(getDB());
+    return NextResponse.json({
+      ok,
+      message: ok ? "Database synced to PostgreSQL ✅" : "PostgreSQL is not configured or unreachable",
+    });
+  }
+
+  const patch = body;
   mutate((db) => {
     const s = db.settings;
     const allowed = [

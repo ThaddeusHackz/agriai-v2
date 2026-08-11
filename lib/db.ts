@@ -1,7 +1,9 @@
 // ─── AgriAI Data Engine ──────────────────────────────────────────────────────
-// A zero-dependency JSON document store with atomic writes.
-// Works on any platform (Render free tier included) with no external database.
-// Data lives in ./data/db.json (gitignored) and is seeded automatically.
+// A zero-dependency JSON document store with atomic writes, mirrored to
+// PostgreSQL when DATABASE_URL is set (Render blueprint managed database).
+// Data lives in ./data/db.json (gitignored), is seeded automatically, and is
+// hydrated back from Postgres on boot when the file is missing — so nothing is
+// ever lost across restarts or deploys.
 
 import fs from "fs";
 import path from "path";
@@ -14,10 +16,11 @@ import type {
   KnowledgeEntry,
 } from "./types";
 import { todayISO } from "./utils";
+import { schedulePostgresSave } from "./pg-store";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 
 let cache: Database | null = null;
 
@@ -35,8 +38,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   heroBadge: "🇬🇭 Ghana's #1 AI Farming Assistant",
   announcement: "🌱 AgriAI 2.0 is live — now with crop disease detection & live market prices!",
   announcementEnabled: true,
-  primaryColor: "#00c853",
-  deepColor: "#0b3d1f",
+  primaryColor: "#00e676",
+  deepColor: "#062e19",
   accentColor: "#f9bc13",
   showSections: {
     features: true,
@@ -48,10 +51,11 @@ const DEFAULT_SETTINGS: AppSettings = {
     team: true,
     faq: true,
     newsletter: true,
+    studio: true,
   },
   chat: {
-    // Google Gemini models (replaced Groq, whose IDs were decommissioned).
-    // See https://ai.google.dev/gemini-api/docs/models
+    // Google Gemini is the primary model; Cloudflare Workers AI is the
+    // automatic fallback; a local knowledge base is the last resort.
     model: "gemini-2.5-flash", // chat (fast, multimodal)
     visionModel: "gemini-2.5-flash", // crop disease detection (multimodal)
     temperature: 0.7,
@@ -66,7 +70,7 @@ const DEFAULT_SETTINGS: AppSettings = {
       "Fertilizer advice for tomatoes",
     ],
     systemPrompt:
-      "You are AgriAI, Ghana's intelligent farming assistant built by the University of Ghana team. You give practical, accurate, and concise farming advice for Ghanaian conditions: crops (maize, cocoa, cassava, yam, plantain, rice, tomatoes, peppers, groundnuts), soil, fertilizer, pests & diseases, irrigation, weather, and market prices. When web search results are provided, base your answer on them and cite sources with [1], [2] markers. Use simple language a rural farmer can understand. Be warm and encouraging.",
+      "You are AgriAI, Ghana's intelligent farming assistant, built by Thaddeus Tagoe. You give practical, accurate, and concise farming advice for Ghanaian conditions: crops (maize, cocoa, cassava, yam, plantain, rice, tomatoes, peppers, groundnuts), soil, fertilizer, pests & diseases, irrigation, weather, and market prices. When web search results are provided, base your answer on them and cite sources with [1], [2] markers. Use simple language a rural farmer can understand. Be warm and encouraging.",
     expertPrompt:
       "You are AgriAI in EXPERT MODE — an agronomist with a PhD in tropical agriculture specializing in Ghana and West Africa. Give detailed, science-based recommendations: specific NPK ratios, application rates, planting densities, disease life-cycles, IPM strategies, and economic analysis. Cite sources with [1], [2] when web search results are provided. Include realistic numbers (GHS, kg/ha, weeks). Be precise and professional.",
     agentPrompt:
@@ -79,7 +83,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     { label: "Languages Supported", value: "6" },
   ],
   contactEmail: "admin@agriai.gh",
-  footerText: "Intelligent Farming for Ghana — University of Ghana • 2026",
+  footerText: "Intelligent Farming for Ghana — built by Thaddeus Tagoe • 2026",
   updatedAt: Date.now(),
 };
 
@@ -229,11 +233,33 @@ function persist(db: Database): void {
   } catch (err) {
     console.error("[db] Failed to persist:", err);
   }
+  // Mirror to PostgreSQL (debounced) when DATABASE_URL is configured.
+  schedulePostgresSave(db);
 }
 
 export function getDB(): Database {
   if (!cache) cache = load();
   return cache;
+}
+
+/**
+ * Boot-time hydration (called from instrumentation.ts): when Postgres is
+ * configured and the local file does not exist yet, restore the document
+ * from the database so data survives restarts/deploys.
+ */
+export async function hydrateFromPostgres(
+  loader: () => Promise<Database | null>
+): Promise<void> {
+  try {
+    if (fs.existsSync(DB_FILE)) return;
+    const doc = await loader();
+    if (!doc) return;
+    cache = doc;
+    persist(doc); // recreate the local file
+    console.log("[db] hydrated document from PostgreSQL");
+  } catch (err) {
+    console.warn("[db] hydration failed:", (err as Error).message);
+  }
 }
 
 export function saveDB(): void {

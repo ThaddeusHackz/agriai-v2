@@ -17,7 +17,7 @@ const FEATURES = [
   {
     icon: Mic,
     title: "Voice Input",
-    desc: "Speak in your own words. Browser speech recognition with OpenAI Whisper as backup.",
+    desc: "Speak in your own words. Browser speech recognition with Gemini transcription as backup.",
   },
   {
     icon: Volume2,
@@ -57,7 +57,7 @@ export default function Features() {
     <Section
       id="features"
       title="Everything a Ghanaian farmer needs"
-      subtitle="One assistant for crops, disease, prices, weather and finance — built with the University of Ghana team."
+      subtitle="One assistant for crops, disease, prices, weather and finance — built for Ghana, by Thaddeus Tagoe."
       show={settings.showSections.features}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -76,7 +76,7 @@ export default function Features() {
             >
               <f.icon className="w-5 h-5" />
             </span>
-            <h3 className="font-bold text-[1.02rem] text-[var(--deep)]">{f.title}</h3>
+            <h3 className="font-bold text-[1.02rem] text-[var(--ink)]">{f.title}</h3>
             <p className="mt-1.5 text-[0.85rem] leading-relaxed text-[var(--muted)]">{f.desc}</p>
           </motion.div>
         ))}

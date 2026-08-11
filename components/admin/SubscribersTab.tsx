@@ -41,7 +41,7 @@ export default function SubscribersTab() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="card rounded-3xl px-6 py-4">
-          <span className="text-[1.6rem] font-bold text-[var(--deep)]">{items.length}</span>
+          <span className="text-[1.6rem] font-bold text-[var(--ink)]">{items.length}</span>
           <span className="ml-2 text-[0.85rem] text-[var(--muted)] font-medium">newsletter subscribers</span>
         </div>
         <a
@@ -53,7 +53,7 @@ export default function SubscribersTab() {
       </div>
 
       <div className="card rounded-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b bg-white font-bold text-[0.98rem] text-[var(--deep)]">
+        <div className="px-6 py-4 border-b bg-[rgba(255,255,255,0.045)] font-bold text-[0.98rem] text-[var(--ink)]">
           Subscribers
         </div>
         {loading ? (
@@ -70,12 +70,12 @@ export default function SubscribersTab() {
                   <Mail className="w-4 h-4" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-[0.88rem] text-[var(--deep)] truncate">{s.email}</div>
+                  <div className="font-semibold text-[0.88rem] text-[var(--ink)] truncate">{s.email}</div>
                   <div className="text-[0.74rem] text-[var(--muted)]">
                     {s.name || "No name"} · subscribed {formatDate(s.createdAt)}
                   </div>
                 </div>
-                <button onClick={() => remove(s.id)} className="p-2 rounded-lg hover:bg-[#fdecea] text-[#b3261e]" title="Remove">
+                <button onClick={() => remove(s.id)} className="p-2 rounded-lg hover:bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]" title="Remove">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

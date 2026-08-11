@@ -68,7 +68,7 @@ export default function MessagesTab() {
       </div>
 
       {loading ? (
-        <div className="h-40 animate-pulse rounded-3xl bg-white border border-[var(--border)]" />
+        <div className="h-40 animate-pulse rounded-3xl bg-[rgba(255,255,255,0.045)] border border-[var(--border)]" />
       ) : chats.length === 0 ? (
         <div className="card rounded-3xl p-10 text-center text-[var(--muted)] text-[0.9rem]">
           No conversations yet. When farmers chat, they appear here.
@@ -84,7 +84,7 @@ export default function MessagesTab() {
                 {modeIcon(c.mode)}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-[0.92rem] text-[var(--deep)] truncate">{c.title}</div>
+                <div className="font-semibold text-[0.92rem] text-[var(--ink)] truncate">{c.title}</div>
                 <div className="text-[0.74rem] text-[var(--muted)]">
                   {c.language.toUpperCase()} · {c.mode} · {c.messageCount} messages · {formatDateTime(c.updatedAt)}
                 </div>
@@ -94,7 +94,7 @@ export default function MessagesTab() {
                   e.stopPropagation();
                   remove(c.id);
                 }}
-                className="p-2 rounded-lg hover:bg-[#fdecea] text-[#b3261e]"
+                className="p-2 rounded-lg hover:bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]"
                 title="Delete conversation"
               >
                 <Trash2 className="w-4 h-4" />
@@ -110,12 +110,12 @@ export default function MessagesTab() {
                       className={`max-w-[85%] px-4 py-3 rounded-2xl text-[0.85rem] ${
                         m.role === "user"
                           ? "bg-[var(--primary)] text-white rounded-br-sm"
-                          : "bg-white border border-[var(--border)] rounded-bl-sm"
+                          : "bg-[rgba(255,255,255,0.045)] border border-[var(--border)] rounded-bl-sm"
                       }`}
                     >
                       {m.role === "assistant" ? <Markdown content={m.content} /> : m.content}
                       {m.demo && (
-                        <span className="mt-2 inline-block text-[0.68rem] font-bold px-2.5 py-0.5 rounded-full bg-[#fff7e0] text-[#8a6d00] border border-[#f3e3a3]">
+                        <span className="mt-2 inline-block text-[0.68rem] font-bold px-2.5 py-0.5 rounded-full bg-[rgba(249,188,19,0.12)] text-[#f5c96b] border border-[rgba(249,188,19,0.3)]">
                           demo
                         </span>
                       )}

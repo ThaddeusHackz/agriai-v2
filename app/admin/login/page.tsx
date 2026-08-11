@@ -5,7 +5,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Leaf, Lock, Mail, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import Logo3D from "@/components/Logo3D";
 import { toast } from "sonner";
 import { api } from "@/components/admin/api";
 
@@ -47,28 +48,26 @@ export default function AdminLogin() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f6faf7]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
         <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary)" }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f6faf7] px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] px-4 relative overflow-hidden">
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, var(--primary), transparent 65%)" }} />
       <div className="absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, var(--accent), transparent 65%)" }} />
 
       <div className="relative w-full max-w-md">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-[var(--muted)] hover:text-[var(--deep)] mb-6">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-[0.82rem] font-semibold text-[var(--muted)] hover:text-[var(--ink)] mb-6">
           <ArrowLeft className="w-4 h-4" /> Back to website
         </Link>
 
-        <div className="card rounded-[1.75rem] p-8 shadow-[var(--shadow-lift)]">
+        <div className="aura-border p-8 shadow-[var(--shadow-lift)]">
           <div className="text-center mb-7">
-            <span className="inline-flex w-14 h-14 rounded-3xl items-center justify-center text-white shadow-lg mb-4" style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-strong))" }}>
-              <Leaf className="w-7 h-7" />
-            </span>
-            <h1 className="text-[1.6rem] font-bold tracking-tight text-[var(--deep)]">AgriAI Admin</h1>
+            <div className="flex justify-center mb-5"><Logo3D size={64} /></div>
+            <h1 className="text-[1.7rem] font-display font-bold tracking-tight text-[var(--ink)]">AgriAI Admin</h1>
             <p className="mt-1 text-[0.85rem] text-[var(--muted)]">Sign in to manage your platform</p>
           </div>
 
@@ -103,7 +102,7 @@ export default function AdminLogin() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--deep)]"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--ink)]"
                 >
                   {showPw ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
@@ -126,8 +125,8 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-[0.75rem] text-[var(--muted)]">
-            Protected area — unauthorized access is logged.
+          <p className="mt-6 text-center text-[0.75rem] text-[var(--muted)] flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" /> Protected area — unauthorized access is logged.
           </p>
         </div>
       </div>

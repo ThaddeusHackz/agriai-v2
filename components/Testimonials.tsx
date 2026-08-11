@@ -36,7 +36,7 @@ export default function Testimonials() {
     <Section
       id="testimonials"
       title="Farmers love AgriAI"
-      subtitle="Built with farmers, tested in the field — from the University of Ghana team."
+      subtitle="Built with farmers, tested in the field — by Thaddeus Tagoe."
       show={settings.showSections.testimonials}
     >
       <div className="grid md:grid-cols-3 gap-5">
@@ -55,13 +55,13 @@ export default function Testimonials() {
             </blockquote>
             <figcaption className="mt-5 pt-4 border-t border-[var(--border)] flex items-center gap-3">
               <span
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[0.85rem]"
-                style={{ background: "linear-gradient(135deg, var(--primary), var(--deep))" }}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-[#03230f] font-bold text-[0.85rem]"
+                style={{ background: "linear-gradient(135deg, var(--primary), var(--deep-bg))" }}
               >
                 {t.initials}
               </span>
               <div>
-                <div className="font-bold text-[0.88rem] text-[var(--deep)]">{t.name}</div>
+                <div className="font-bold text-[0.88rem] text-[var(--ink)]">{t.name}</div>
                 <div className="text-[0.75rem] text-[var(--muted)]">{t.role}</div>
               </div>
               <span className="ml-auto flex gap-0.5">

@@ -14,10 +14,31 @@ import MarketPrices from "@/components/MarketPrices";
 import WeatherSection from "@/components/WeatherSection";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
-import Team from "@/components/Team";
+import Founder from "@/components/Founder";
+import CropStudio from "@/components/CropStudio";
 import FAQ from "@/components/FAQ";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
+
+const MARQUEE_ITEMS = [
+  "🌽 Maize", "🍫 Cocoa", "🌿 Cassava", "🍠 Yam", "🍌 Plantain", "🌾 Rice",
+  "🍅 Tomatoes", "🌶️ Pepper", "🥜 Groundnut", "🫘 Soybean", "🫚 Ginger", "🌴 Palm Oil",
+  "🍍 Pineapple", "🥭 Mango", "💧 Irrigation", "🌦️ Weather", "📈 Prices", "🧪 Soil",
+];
+
+function MarqueeStrip() {
+  return (
+    <div className="relative border-y border-[var(--border)] bg-[rgba(255,255,255,0.02)] py-3.5 overflow-hidden select-none">
+      <div className="marquee-track">
+        {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+          <span key={i} className="text-[0.85rem] font-medium text-[var(--muted)] whitespace-nowrap">
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function VisitorTracker() {
   useEffect(() => {
@@ -38,26 +59,28 @@ function VisitorTracker() {
 function PageInner() {
   const { loaded } = useSite();
   return (
-    <div id="top" className="min-h-screen bg-white">
+    <div id="top" className="min-h-screen bg-[var(--bg)]">
       <VisitorTracker />
       <AnnouncementBar />
       <Nav />
       <main className={loaded ? "opacity-100 transition-opacity duration-300" : "opacity-0"}>
         <Hero />
+        <MarqueeStrip />
         <div className="max-w-6xl mx-auto px-5 md:px-8 pb-6">
           <Chat />
         </div>
         <HowItWorks />
-        <div className="bg-gradient-to-b from-white via-[#f6faf7] to-white">
+        <div className="bg-gradient-to-b from-[var(--bg)] via-[rgba(255,255,255,0.02)] to-[var(--bg)]">
           <Features />
         </div>
         <DiseaseDetector />
-        <div className="bg-gradient-to-b from-white via-[#f6faf7] to-white">
+        <div className="bg-gradient-to-b from-[var(--bg)] via-[rgba(255,255,255,0.02)] to-[var(--bg)]">
           <MarketPrices />
         </div>
         <WeatherSection />
+        <CropStudio />
         <Testimonials />
-        <Team />
+        <Founder />
         <FAQ />
         <Newsletter />
       </main>

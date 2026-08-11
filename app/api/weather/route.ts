@@ -1,7 +1,10 @@
-// ─── GET /api/weather — Ghana 5-day forecast (Open-Meteo, keyless) ───────────
-// Falls back to curated data when the free API is unreachable.
+// ─── GET /api/weather — Ghana 5-day forecast ─────────────────────────────────
+// Provider chain: OpenWeatherMap (OPENWEATHER_API_KEY) → Open-Meteo (keyless)
+// → curated seed data. The site never breaks; `demo` tells the UI which
+// quality tier the data came from.
 
 import { NextRequest, NextResponse } from "next/server";
+import { openweatherForecast } from "@/lib/openweather";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -54,58 +57,82 @@ function seedForecast(seed: number) {
   };
 }
 
+async function openMeteoFallback(lat: number, lon: number) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(lat));
+  url.searchParams.set("longitude", String(lon));
+  url.searchParams.set(
+    "current",
+    "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
+  );
+  url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max");
+  url.searchParams.set("timezone", "Africa/Accra");
+  url.searchParams.set("forecast_days", "5");
+
+  const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  if (!res.ok) throw new Error(`open-meteo ${res.status}`);
+  const data = await res.json();
+
+  const daily = (data.daily?.time || []).map((date: string, i: number) => ({
+    date,
+    tmax: Math.round(data.daily.temperature_2m_max[i]),
+    tmin: Math.round(data.daily.temperature_2m_min[i]),
+    precip: data.daily.precipitation_sum[i] ?? 0,
+    wind: Math.round(data.daily.wind_speed_10m_max[i] ?? 0),
+  }));
+
+  const cur = data.current || {};
+  const current = {
+    temp: Math.round(cur.temperature_2m ?? daily[0]?.tmax ?? 28),
+    humidity: Math.round(cur.relative_humidity_2m ?? 70),
+    precip: cur.precipitation ?? 0,
+    wind: Math.round(cur.wind_speed_10m ?? 10),
+  };
+  return { current, daily };
+}
+
 export async function GET(request: NextRequest) {
   const cityKey = (request.nextUrl.searchParams.get("city") || "accra").toLowerCase();
   const city = CITIES[cityKey] || CITIES.accra;
 
+  // 1) OpenWeatherMap (real API key from Render)
   try {
-    const url = new URL("https://api.open-meteo.com/v1/forecast");
-    url.searchParams.set("latitude", String(city.lat));
-    url.searchParams.set("longitude", String(city.lon));
-    url.searchParams.set(
-      "current",
-      "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
-    );
-    url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max");
-    url.searchParams.set("timezone", "Africa/Accra");
-    url.searchParams.set("forecast_days", "5");
-
-    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-    if (!res.ok) throw new Error(`open-meteo ${res.status}`);
-    const data = await res.json();
-
-    const daily = (data.daily?.time || []).map((date: string, i: number) => ({
-      date,
-      tmax: Math.round(data.daily.temperature_2m_max[i]),
-      tmin: Math.round(data.daily.temperature_2m_min[i]),
-      precip: data.daily.precipitation_sum[i] ?? 0,
-      wind: Math.round(data.daily.wind_speed_10m_max[i] ?? 0),
-    }));
-
-    const cur = data.current || {};
-    const current = {
-      temp: Math.round(cur.temperature_2m ?? daily[0]?.tmax ?? 28),
-      humidity: Math.round(cur.relative_humidity_2m ?? 70),
-      precip: cur.precipitation ?? 0,
-      wind: Math.round(cur.wind_speed_10m ?? 10),
-    };
-
+    const ow = await openweatherForecast(city.lat, city.lon);
     return NextResponse.json({
       city: city.name,
-      current,
-      daily,
-      advice: adviceFor(current.temp, current.precip, current.humidity),
+      current: ow.current,
+      daily: ow.daily,
+      advice: adviceFor(ow.current.temp, ow.current.precip, ow.current.humidity),
+      source: "openweather",
       demo: false,
     });
   } catch (err) {
-    console.error("[weather] fallback used:", (err as Error).message);
-    const fb = seedForecast(city.lat * 1000 + city.lon);
+    console.error("[weather] OpenWeather failed, trying Open-Meteo:", (err as Error).message);
+  }
+
+  // 2) Open-Meteo (keyless)
+  try {
+    const om = await openMeteoFallback(city.lat, city.lon);
     return NextResponse.json({
       city: city.name,
-      current: fb.current,
-      daily: fb.daily,
-      advice: adviceFor(fb.current.temp, fb.current.precip, fb.current.humidity),
+      current: om.current,
+      daily: om.daily,
+      advice: adviceFor(om.current.temp, om.current.precip, om.current.humidity),
+      source: "open-meteo",
       demo: true,
     });
+  } catch (err) {
+    console.error("[weather] Open-Meteo failed, using seed data:", (err as Error).message);
   }
+
+  // 3) deterministic seed data — never breaks
+  const fb = seedForecast(city.lat * 1000 + city.lon);
+  return NextResponse.json({
+    city: city.name,
+    current: fb.current,
+    daily: fb.daily,
+    advice: adviceFor(fb.current.temp, fb.current.precip, fb.current.humidity),
+    source: "seed",
+    demo: true,
+  });
 }

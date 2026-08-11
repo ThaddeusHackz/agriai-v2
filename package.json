@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:pg": "npm run build:pg-test && NODE_PATH=$PWD/node_modules node scripts/pg-store.test.cjs",
+    "build:pg-test": "tsc -p scripts/tsconfig.test.json"
   },
   "dependencies": {
     "@google/genai": "^2.16.0",
@@ -20,7 +22,7 @@
     "framer-motion": "^12.42.2",
     "lucide-react": "^0.468.0",
     "next": "16.2.10",
-    "openai": "^6.47.0",
+    "pg": "^8.23.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^9.0.1",
@@ -30,7 +32,10 @@
     "typescript": "^5"
   },
   "devDependencies": {
+    "@types/pg": "^8.21.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10"
+    "eslint-config-next": "16.2.10",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "pg-mem": "^3.0.14"
   }
 }

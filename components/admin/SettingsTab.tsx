@@ -1,19 +1,47 @@
 "use client";
 
-// ─── Settings tab: platform info + danger zone ───────────────────────────────
+// ─── Settings tab: platform info, database status + danger zone ──────────────
 
-import React, { useState } from "react";
-import { AlertTriangle, Database, Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { AlertTriangle, Database, Loader2, RefreshCw, Cloud, FileJson } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "./api";
+
+interface DbStatus {
+  provider: "postgres" | "json";
+  connected: boolean;
+}
 
 export default function SettingsTab() {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
+  const [db, setDb] = useState<DbStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  const loadDb = async () => {
+    const r = await api<{ database: DbStatus }>("/api/admin/settings");
+    if (r.ok && r.data.database) setDb(r.data.database);
+  };
+
+  useEffect(() => {
+    loadDb();
+  }, []);
+
+  const syncNow = async () => {
+    setSyncing(true);
+    const r = await api<{ message?: string }>("/api/admin/settings", {
+      method: "POST",
+      body: JSON.stringify({ action: "sync" }),
+    });
+    setSyncing(false);
+    if (r.ok && r.data.message) toast.success(r.data.message);
+    else toast.error("Sync failed");
+    loadDb();
+  };
 
   const reset = async () => {
     if (confirm !== "RESET") {
-      toast.error('Type RESET exactly to confirm');
+      toast.error("Type RESET exactly to confirm");
       return;
     }
     setBusy(true);
@@ -30,31 +58,64 @@ export default function SettingsTab() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="card rounded-3xl p-6">
-        <h3 className="font-bold text-[0.98rem] text-[var(--deep)] flex items-center gap-2 mb-4">
+        <h3 className="font-bold text-[0.98rem] text-[var(--ink)] flex items-center gap-2 mb-4">
           <Database className="w-4.5 h-4.5" style={{ color: "var(--primary)" }} /> About this deployment
         </h3>
         <dl className="grid sm:grid-cols-2 gap-4 text-[0.88rem]">
           <div>
             <dt className="label">Platform</dt>
-            <dd className="text-[var(--text)]">AgriAI 2.0 — full-stack Next.js</dd>
+            <dd className="text-[var(--text)]">AgriAI 2.0 — full-stack Next.js 16</dd>
           </div>
           <div>
             <dt className="label">Data storage</dt>
-            <dd className="text-[var(--text)]">JSON document store (./data/db.json)</dd>
+            <dd className="flex items-center gap-2 text-[var(--text)]">
+              {db?.provider === "postgres" ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.72rem] font-bold bg-[rgba(16,185,129,0.12)] text-[#6ee7a0] border border-[rgba(16,185,129,0.3)]">
+                    <Cloud className="w-3 h-3" /> PostgreSQL
+                  </span>
+                  {db.connected ? (
+                    <span className="text-[0.72rem] text-[#6ee7a0]">● connected</span>
+                  ) : (
+                    <span className="text-[0.72rem] text-[#fb7185]">● unreachable (falling back to JSON)</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.72rem] font-bold bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]">
+                    <FileJson className="w-3 h-3" /> JSON file
+                  </span>
+                  <span className="text-[0.72rem] text-[var(--muted)]">(set DATABASE_URL for Postgres)</span>
+                </>
+              )}
+            </dd>
           </div>
           <div>
             <dt className="label">AI providers</dt>
-            <dd className="text-[var(--text)]">Google Gemini · OpenAI Whisper · ElevenLabs · Tavily</dd>
+            <dd className="text-[var(--text)]">Google Gemini · Cloudflare Workers AI · ElevenLabs · Tavily</dd>
+          </div>
+          <div>
+            <dt className="label">Weather</dt>
+            <dd className="text-[var(--text)]">OpenWeatherMap · Open-Meteo fallback</dd>
           </div>
           <div>
             <dt className="label">Auth</dt>
             <dd className="text-[var(--text)]">bcrypt + signed cookie sessions (7 days)</dd>
           </div>
         </dl>
+
+        <div className="mt-5 pt-5 border-t border-[var(--border)] flex flex-wrap items-center gap-3">
+          <button onClick={syncNow} disabled={syncing} className="btn btn-ghost text-[0.82rem] px-5 py-2.5">
+            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} /> Sync database now
+          </button>
+          <span className="text-[0.72rem] text-[var(--muted)]">
+            Mirrors the document store to PostgreSQL instantly (writes are auto-synced every ~1.5s).
+          </span>
+        </div>
       </div>
 
-      <div className="card rounded-3xl p-6 border-[#f5c6c2] bg-[#fffafa]">
-        <h3 className="font-bold text-[0.98rem] text-[#b3261e] flex items-center gap-2 mb-2">
+      <div className="card rounded-3xl p-6 !border-[rgba(255,107,107,0.3)]">
+        <h3 className="font-bold text-[0.98rem] text-[#ff9d8f] flex items-center gap-2 mb-2">
           <AlertTriangle className="w-4.5 h-4.5" /> Danger zone
         </h3>
         <p className="text-[0.85rem] text-[var(--muted)] mb-4">
@@ -63,11 +124,11 @@ export default function SettingsTab() {
         <div className="flex flex-wrap gap-3 items-center">
           <input
             className="input max-w-[180px]"
-            placeholder='Type RESET'
+            placeholder="Type RESET"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
-          <button onClick={reset} disabled={busy} className="btn px-6 py-2.5 text-[0.85rem] bg-[#b3261e] hover:bg-[#9a1e18] text-white">
+          <button onClick={reset} disabled={busy} className="btn px-6 py-2.5 text-[0.85rem] bg-[rgba(255,107,107,0.85)] hover:bg-[#ff5f5f] text-white">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
             Reset database
           </button>

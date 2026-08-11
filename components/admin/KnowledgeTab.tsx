@@ -69,12 +69,12 @@ export default function KnowledgeTab() {
     <div className="space-y-5">
       <div className="card rounded-3xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-[0.98rem] text-[var(--deep)] flex items-center gap-2">
+          <h3 className="font-bold text-[0.98rem] text-[var(--ink)] flex items-center gap-2">
             <BookOpen className="w-4.5 h-4.5" style={{ color: "var(--primary)" }} />
             {editing?.id ? "Edit entry" : "New knowledge entry"}
           </h3>
           {editing?.id && (
-            <button onClick={() => setEditing(null)} className="text-[0.78rem] text-[var(--muted)] hover:text-[var(--deep)] inline-flex items-center gap-1">
+            <button onClick={() => setEditing(null)} className="text-[0.78rem] text-[var(--muted)] hover:text-[var(--ink)] inline-flex items-center gap-1">
               <X className="w-3.5 h-3.5" /> Cancel
             </button>
           )}
@@ -94,7 +94,7 @@ export default function KnowledgeTab() {
       </div>
 
       <div className="card rounded-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b bg-white font-bold text-[0.98rem] text-[var(--deep)]">
+        <div className="px-6 py-4 border-b bg-[rgba(255,255,255,0.045)] font-bold text-[0.98rem] text-[var(--ink)]">
           Knowledge base ({entries.length})
         </div>
         {loading ? (
@@ -104,7 +104,7 @@ export default function KnowledgeTab() {
             {entries.map((e) => (
               <div key={e.id} className="px-6 py-4 flex items-start gap-3 hover:bg-[var(--surface)]/50">
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-[0.9rem] text-[var(--deep)]">{e.question}</div>
+                  <div className="font-semibold text-[0.9rem] text-[var(--ink)]">{e.question}</div>
                   <div className="text-[0.78rem] text-[var(--muted)] mt-0.5">
                     {e.category} · {e.keywords.length} keywords
                   </div>
@@ -112,7 +112,7 @@ export default function KnowledgeTab() {
                 <button onClick={() => setEditing({ ...e })} className="p-2 rounded-lg hover:bg-[var(--surface-2)] text-[var(--muted)]" title="Edit">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => remove(e.id)} className="p-2 rounded-lg hover:bg-[#fdecea] text-[#b3261e]" title="Delete">
+                <button onClick={() => remove(e.id)} className="p-2 rounded-lg hover:bg-[rgba(255,107,107,0.12)] text-[#ff9d8f]" title="Delete">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

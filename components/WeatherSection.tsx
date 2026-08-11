@@ -22,11 +22,19 @@ interface Day {
   tmin: number;
   precip: number;
   wind: number;
+  icon?: string;
 }
+
+// OpenWeather icon code → emoji (day/night aware)
+const WX: Record<string, string> = {
+  "01d": "☀️", "01n": "🌙", "02d": "⛅", "02n": "☁️", "03d": "☁️", "03n": "☁️",
+  "04d": "☁️", "04n": "☁️", "09d": "🌧️", "09n": "🌧️", "10d": "🌦️", "10n": "🌧️",
+  "11d": "⛈️", "11n": "⛈️", "13d": "🌨️", "13n": "🌨️", "50d": "🌫️", "50n": "🌫️",
+};
 
 interface WeatherData {
   city: string;
-  current: { temp: number; humidity: number; precip: number; wind: number };
+  current: { temp: number; humidity: number; precip: number; wind: number; icon?: string; desc?: string };
   daily: Day[];
   advice: string;
   demo: boolean;
@@ -94,7 +102,7 @@ export default function WeatherSection() {
             </button>
           ))}
           {data.demo && !loading && (
-            <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#8a6d00] bg-[#fff7e0] border border-[#f3e3a3] px-3 py-1.5 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold text-[#f5c96b] bg-[rgba(249,188,19,0.12)] border border-[rgba(249,188,19,0.3)] px-3 py-1.5 rounded-full">
               <WifiOff className="w-3 h-3" /> cached forecast
             </span>
           )}
@@ -109,7 +117,7 @@ export default function WeatherSection() {
         ) : (
           <div className="grid lg:grid-cols-3 gap-6">
             {/* current */}
-            <div className="rounded-3xl text-white p-6 relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--deep), #12683b)" }}>
+            <div className="rounded-3xl text-white p-6 relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--deep-bg), #0f5c33)" }}>
               <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10" />
               <div className="text-[0.75rem] font-bold uppercase tracking-wider text-white/70">
                 {data.city} · Now
@@ -118,7 +126,7 @@ export default function WeatherSection() {
                 <span className="text-[3.4rem] font-bold leading-none tracking-tighter">
                   {Math.round(data.current.temp)}°
                 </span>
-                <CloudSun className="w-9 h-9 text-white/80 mb-1.5" />
+                <span className="text-[2.2rem] leading-none mb-1.5">{WX[data.current.icon || ""] || "🌤️"}</span>
               </div>
               <div className="mt-4 grid grid-cols-3 gap-2 text-[0.78rem]">
                 <div className="bg-white/12 rounded-xl px-2.5 py-2 text-center">
@@ -143,18 +151,18 @@ export default function WeatherSection() {
                   <Thermometer className="w-4.5 h-4.5" />
                 </span>
                 <div>
-                  <div className="font-bold text-[0.85rem] text-[var(--deep)]">Farming advice for today</div>
+                  <div className="font-bold text-[0.85rem] text-[var(--ink)]">Farming advice for today</div>
                   <p className="text-[0.83rem] text-[var(--muted)] leading-relaxed mt-0.5">{data.advice}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                 {data.daily.map((d, i) => (
-                  <div key={d.date} className="rounded-2xl border border-[var(--border)] bg-white px-2 py-3.5 text-center hover:shadow-md transition">
+                  <div key={d.date} className="rounded-2xl border border-[var(--border)] bg-[rgba(255,255,255,0.045)] px-2 py-3.5 text-center hover:shadow-md transition">
                     <div className="text-[0.7rem] font-bold text-[var(--muted)] uppercase">{i === 0 ? "Today" : dayLabel(d.date)}</div>
-                    <div className="mt-2 text-[1.3rem] font-bold text-[var(--deep)]">{Math.round(d.tmax)}°</div>
+                    <div className="mt-2 text-[1.3rem] font-bold text-[var(--ink)]">{Math.round(d.tmax)}° <span className="text-[1rem]">{WX[d.icon || ""] || ""}</span></div>
                     <div className="text-[0.72rem] text-[var(--muted)]">↓ {Math.round(d.tmin)}°</div>
-                    <div className="mt-2 inline-flex items-center gap-1 text-[0.7rem] font-semibold text-[#1a6fb5] bg-[#eaf3fb] px-2 py-0.5 rounded-full">
+                    <div className="mt-2 inline-flex items-center gap-1 text-[0.7rem] font-semibold text-[#7cc4ff] bg-[rgba(59,130,246,0.14)] border border-[rgba(59,130,246,0.3)] px-2 py-0.5 rounded-full">
                       <Umbrella className="w-3 h-3" /> {d.precip}mm
                     </div>
                     <div className="mt-1 text-[0.68rem] text-[var(--muted)]">💨 {d.wind} km/h</div>

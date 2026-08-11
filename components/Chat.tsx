@@ -26,6 +26,7 @@ interface Msg {
   content: string;
   sources?: Source[];
   demo?: boolean;
+  provider?: "gemini" | "cloudflare" | "local";
   feedback?: "up" | "down";
 }
 
@@ -125,7 +126,7 @@ export default function Chat() {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        let doneEvent: { text: string; demo?: boolean; sources?: Source[] } | null = null;
+        let doneEvent: { text: string; demo?: boolean; sources?: Source[]; provider?: Msg["provider"] } | null = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -163,6 +164,7 @@ export default function Chat() {
                   content: doneEvent?.text || m.content,
                   sources: doneEvent?.sources?.length ? doneEvent.sources : undefined,
                   demo: doneEvent?.demo || undefined,
+                  provider: doneEvent?.provider,
                 }
               : m
           )
@@ -334,13 +336,13 @@ export default function Chat() {
   return (
     <div className="card overflow-hidden shadow-[var(--shadow-lift)]" id="assistant">
       {/* Header */}
-      <div className="px-6 md:px-8 py-4.5 border-b flex items-center justify-between gap-3 bg-white">
+      <div className="px-6 md:px-8 py-4.5 border-b flex items-center justify-between gap-3 bg-[rgba(255,255,255,0.045)]">
         <div className="flex items-center gap-3">
-          <span className="w-9 h-9 rounded-2xl flex items-center justify-center text-white shadow-md" style={{ background: "var(--primary)" }}>
+          <span className="w-9 h-9 rounded-2xl flex items-center justify-center text-[#03230f] shadow-md" style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-strong))" }}>
             <Leaf className="w-4.5 h-4.5" />
           </span>
           <div>
-            <div className="font-bold text-[0.98rem] text-[var(--deep)]">AgriAI Assistant</div>
+            <div className="font-bold text-[0.98rem] text-[var(--ink)]">AgriAI Assistant</div>
             <div className="text-[0.72rem] text-[var(--muted)] flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--primary)" }} />
               {settings.chat.model}
@@ -365,8 +367,8 @@ export default function Chat() {
           msg.role === "user" ? (
             <div key={msg.id} className="flex justify-end fade-up">
               <div
-                className="max-w-[85%] md:max-w-[72%] px-5 py-3 rounded-3xl rounded-br-md text-white text-[0.93rem] leading-relaxed shadow-sm"
-                style={{ background: "var(--primary)" }}
+                className="max-w-[85%] md:max-w-[72%] px-5 py-3 rounded-3xl rounded-br-md text-[#03230f] font-medium text-[0.93rem] leading-relaxed shadow-sm"
+                style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-strong))" }}
               >
                 {msg.content}
               </div>
@@ -374,7 +376,7 @@ export default function Chat() {
           ) : (
             <div key={msg.id} className="flex justify-start fade-up">
               <div className="max-w-[92%] md:max-w-[85%]">
-                <div className="rounded-3xl rounded-bl-md bg-white border border-[var(--border)] px-5 py-4 shadow-sm">
+                <div className="rounded-3xl rounded-bl-md bg-[rgba(255,255,255,0.045)] border border-[var(--border)] px-5 py-4 shadow-sm">
                   {msg.content ? (
                     <Markdown content={msg.content} />
                   ) : (
@@ -385,9 +387,18 @@ export default function Chat() {
                     </div>
                   )}
 
-                  {msg.demo && (
-                    <div className="mt-3 inline-flex items-center gap-1.5 text-[0.72rem] font-semibold px-3 py-1 rounded-full bg-[#fff7e0] text-[#8a6d00] border border-[#f3e3a3]">
-                      Offline demo response
+                  {(msg.demo || msg.provider) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      {msg.provider && msg.provider !== "local" && (
+                        <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold px-3 py-1 rounded-full bg-[var(--primary-soft)] text-[var(--primary)] border border-[color-mix(in_srgb,var(--primary)_30%,transparent)]">
+                          {msg.provider === "gemini" ? "⚡ Gemini" : "☁️ Cloudflare AI"}
+                        </span>
+                      )}
+                      {msg.demo && (
+                        <span className="inline-flex items-center gap-1.5 text-[0.72rem] font-semibold px-3 py-1 rounded-full bg-[rgba(249,188,19,0.12)] text-[#f5c96b] border border-[rgba(249,188,19,0.3)]">
+                          📦 Offline knowledge base
+                        </span>
+                      )}
                     </div>
                   )}
 
@@ -451,7 +462,7 @@ export default function Chat() {
       </div>
 
       {/* Controls */}
-      <div className="px-5 md:px-8 py-4 bg-white border-t">
+      <div className="px-5 md:px-8 py-4 bg-[rgba(255,255,255,0.045)] border-t">
         {/* mode + web search row */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <button
@@ -528,7 +539,7 @@ export default function Chat() {
             onKeyDown={handleKey}
             rows={1}
             placeholder={settings.chat.placeholder}
-            className="flex-1 resize-none border border-[var(--border)] px-5 py-3.5 rounded-3xl text-[0.93rem] outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_15%,transparent)] bg-white max-h-32"
+            className="flex-1 resize-none border border-[var(--border)] px-5 py-3.5 rounded-3xl text-[0.93rem] outline-none focus:border-[var(--primary)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_15%,transparent)] bg-[rgba(255,255,255,0.045)] max-h-32"
           />
 
           {streaming ? (
@@ -543,8 +554,8 @@ export default function Chat() {
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim()}
-              className="shrink-0 p-3.5 rounded-3xl text-white transition disabled:opacity-40 hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_40%,transparent)]"
-              style={{ background: "var(--primary)" }}
+              className="shrink-0 p-3.5 rounded-3xl text-[#03230f] transition disabled:opacity-40 hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_40%,transparent)]"
+              style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-strong))" }}
               title="Send"
             >
               <Send className="w-5 h-5" />

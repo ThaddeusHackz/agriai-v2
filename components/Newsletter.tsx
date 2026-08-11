@@ -52,7 +52,7 @@ export default function Newsletter() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
           className="rounded-[2rem] text-white relative overflow-hidden px-7 py-12 md:p-14 text-center"
-          style={{ background: "linear-gradient(120deg, var(--deep) 0%, #0d5c30 55%, var(--primary-strong) 120%)" }}
+          style={{ background: "linear-gradient(120deg, var(--deep-bg) 0%, #0d5c30 55%, #0a6e3a 120%)" }}
         >
           <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/8 blur-2xl" />
           <div className="absolute -bottom-20 -left-10 w-64 h-64 rounded-full bg-white/6 blur-2xl" />
@@ -76,19 +76,19 @@ export default function Newsletter() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name (optional)"
-                className="flex-1 rounded-full px-5 py-3.5 bg-white/95 text-[#111] placeholder:text-gray-400 outline-none text-[0.9rem]"
+                className="flex-1 rounded-full px-5 py-3.5 bg-[rgba(5,13,8,0.55)] border border-white/15 text-[var(--text)] placeholder:text-white/40 outline-none text-[0.9rem] backdrop-blur"
               />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="flex-1 rounded-full px-5 py-3.5 bg-white/95 text-[#111] placeholder:text-gray-400 outline-none text-[0.9rem]"
+                className="flex-1 rounded-full px-5 py-3.5 bg-[rgba(5,13,8,0.55)] border border-white/15 text-[var(--text)] placeholder:text-white/40 outline-none text-[0.9rem] backdrop-blur"
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="btn px-6 py-3.5 text-[0.9rem] text-[var(--deep)] disabled:opacity-60"
+                className="btn px-6 py-3.5 text-[0.9rem] text-[#2a1c00] font-bold disabled:opacity-60"
                 style={{ background: "var(--accent)" }}
               >
                 {busy ? "Subscribing…" : (

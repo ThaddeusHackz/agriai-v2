@@ -15,7 +15,7 @@ interface SectionProps {
 export default function Section({ id, title, subtitle, children, className = "", show = true }: SectionProps) {
   if (!show) return null;
   return (
-    <section id={id} className={`py-16 md:py-20 scroll-mt-24 ${className}`}>
+    <section id={id} className={`py-16 md:py-20 scroll-mt-24 relative ${className}`}>
       <div className="max-w-6xl mx-auto px-5 md:px-8">
         {(title || subtitle) && (
           <motion.div
@@ -26,8 +26,9 @@ export default function Section({ id, title, subtitle, children, className = "",
             className="text-center mb-10 md:mb-14"
           >
             {title && (
-              <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight text-[var(--deep)]">
+              <h2 className="text-3xl md:text-[2.6rem] font-bold tracking-tight text-[var(--ink)]">
                 {title}
+                <span className="gradient-text">.</span>
               </h2>
             )}
             {subtitle && (
