@@ -12,15 +12,27 @@ interface DbStatus {
   connected: boolean;
 }
 
+interface Providers {
+  gemini: boolean;
+  cloudflare: boolean;
+  openweather: boolean;
+  tavily: boolean;
+  elevenlabs: boolean;
+  unsplash: boolean;
+  database: boolean;
+}
+
 export default function SettingsTab() {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [db, setDb] = useState<DbStatus | null>(null);
+  const [providers, setProviders] = useState<Providers | null>(null);
   const [syncing, setSyncing] = useState(false);
 
   const loadDb = async () => {
-    const r = await api<{ database: DbStatus }>("/api/admin/settings");
+    const r = await api<{ database: DbStatus; providers?: Providers }>("/api/admin/settings");
     if (r.ok && r.data.database) setDb(r.data.database);
+    if (r.ok && r.data.providers) setProviders(r.data.providers);
   };
 
   useEffect(() => {

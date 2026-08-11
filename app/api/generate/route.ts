@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { cloudflareConfigured, cloudflareImage } from "@/lib/cloudflare";
+import { geminiConfigured, geminiImage } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -17,9 +18,9 @@ const SAFE_SUBJECTS = [
 ];
 
 export async function POST(request: NextRequest) {
-  if (!cloudflareConfigured()) {
+  if (!cloudflareConfigured() && !geminiConfigured()) {
     return NextResponse.json(
-      { error: "AI Studio is not configured — add CLOUDFLARE_API_KEY & CLOUDFLARE_ACCOUNT_ID in Render" },
+      { error: "AI Studio needs CLOUDFLARE_API_KEY + CLOUDFLARE_ACCOUNT_ID, or GEMINI_API_KEY / GOOGLE_API_KEY" },
       { status: 503 }
     );
   }
@@ -45,15 +46,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  try {
-    const fullPrompt = `${prompt}, photorealistic agricultural photography, lush healthy crops, golden hour lighting, high detail`;
-    const dataUrl = await cloudflareImage(fullPrompt, { steps: 4 });
-    return NextResponse.json({ ok: true, image: dataUrl });
-  } catch (err) {
-    console.error("[generate] Cloudflare image failed:", (err as Error).message);
-    return NextResponse.json(
-      { error: "Image generation failed — check your Cloudflare account plan" },
-      { status: 502 }
-    );
+  const fullPrompt = `${prompt}, photorealistic agricultural photography, lush healthy crops, golden hour lighting, high detail`;
+
+  if (cloudflareConfigured()) {
+    try {
+      const dataUrl = await cloudflareImage(fullPrompt, { steps: 4 });
+      return NextResponse.json({ ok: true, image: dataUrl, provider: "cloudflare" });
+    } catch (err) {
+      console.error("[generate] Cloudflare image failed:", (err as Error).message);
+    }
   }
+
+  if (geminiConfigured()) {
+    try {
+      const dataUrl = await geminiImage(fullPrompt);
+      return NextResponse.json({ ok: true, image: dataUrl, provider: "gemini" });
+    } catch (err) {
+      console.error("[generate] Gemini image failed:", (err as Error).message);
+    }
+  }
+
+  return NextResponse.json(
+    { error: "Image generation failed — check Cloudflare Workers AI access or Gemini image models on this key" },
+    { status: 502 }
+  );
 }

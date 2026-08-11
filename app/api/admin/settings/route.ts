@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { getDB, mutate } from "@/lib/db";
 import { postgresHealth, forcePostgresSave } from "@/lib/pg-store";
+import { providerStatus } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const db = getDB();
   const database = await postgresHealth();
-  return NextResponse.json({ settings: db.settings, database });
+  return NextResponse.json({ settings: db.settings, database, providers: providerStatus() });
 }
 
 export async function POST(request: NextRequest) {

@@ -29,10 +29,12 @@ export interface WeatherResult {
   demo: boolean;
 }
 
+import { openweatherApiKey } from "./env";
+
 const BASE = "https://api.openweathermap.org/data/2.5";
 
 export function openweatherConfigured(): boolean {
-  return Boolean(process.env.OPENWEATHER_API_KEY);
+  return Boolean(openweatherApiKey());
 }
 
 interface ForecastEntry {
@@ -84,7 +86,7 @@ export async function openweatherForecast(
   lat: number,
   lon: number
 ): Promise<WeatherResult> {
-  const key = process.env.OPENWEATHER_API_KEY;
+  const key = openweatherApiKey();
   if (!key) throw new Error("OPENWEATHER_API_KEY is not set");
 
   const params = new URLSearchParams({

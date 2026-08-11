@@ -13,7 +13,7 @@ import {
   uid,
 } from "@/lib/db";
 import { searchWeb, contextBlock } from "@/lib/search";
-import { getGemini, localAnswer } from "@/lib/ai";
+import { geminiConfigured, geminiGenerateStream, localAnswer } from "@/lib/ai";
 import { cloudflareChat, cloudflareConfigured } from "@/lib/cloudflare";
 import { languageInstruction } from "@/lib/languages";
 
@@ -93,11 +93,8 @@ export async function POST(request: NextRequest) {
       let provider = "local"; // "gemini" | "cloudflare" | "local"
       let sources = webContext?.sources || [];
 
-      const client = getGemini();
-      if (client) {
+      if (geminiConfigured()) {
         try {
-          // Build Gemini conversation: prior turns + the new user message.
-          // Gemini uses roles "user"/"model"; the system prompt is passed via config.
           const contents = [
             ...history.slice(-8).map((m) => ({
               role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
@@ -106,26 +103,16 @@ export async function POST(request: NextRequest) {
             { role: "user" as const, parts: [{ text: message }] },
           ];
 
-          const response = await client.models.generateContentStream({
+          const result = await geminiGenerateStream({
             model: chatCfg.model,
             contents,
-            config: {
-              systemInstruction: system,
-              temperature: chatCfg.temperature,
-              maxOutputTokens: chatCfg.maxTokens,
-              abortSignal: request.signal,
-              // Disable Gemini 2.5 thinking for fast, clean streamed answers.
-              thinkingConfig: { thinkingBudget: 0 },
-            },
+            systemInstruction: system,
+            temperature: chatCfg.temperature,
+            maxOutputTokens: chatCfg.maxTokens,
+            signal: request.signal,
+            onDelta: (delta) => send("delta", { text: delta }),
           });
-
-          for await (const chunk of response) {
-            const delta = chunk.text || "";
-            if (delta) {
-              fullText += delta;
-              send("delta", { text: delta });
-            }
-          }
+          fullText = result.text;
           if (!fullText.trim()) throw new Error("empty stream");
           provider = "gemini";
         } catch (err) {

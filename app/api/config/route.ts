@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
+import { providerStatus } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -32,5 +33,6 @@ export async function GET() {
       footerText: s.footerText,
     },
     version: "2.0.0",
+    providers: providerStatus(),
   });
 }

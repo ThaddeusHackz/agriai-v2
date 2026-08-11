@@ -31,8 +31,11 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await audio.arrayBuffer());
     const mimeType = audio.type || "audio/webm";
 
-    const response = await client.models.generateContent({
+    const { geminiGenerateText } = await import("@/lib/ai");
+    const { text } = await geminiGenerateText({
       model: "gemini-2.5-flash",
+      temperature: 0,
+      maxOutputTokens: 1024,
       contents: [
         {
           role: "user",
@@ -44,15 +47,7 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
-      config: {
-        temperature: 0,
-        maxOutputTokens: 1024,
-        // Disable Gemini 2.5 thinking for fast, clean transcription.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
     });
-
-    const text = (response.text || "").trim();
     if (!text) throw new Error("empty transcription");
     return NextResponse.json({ text });
   } catch (err) {

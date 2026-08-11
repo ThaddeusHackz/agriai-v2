@@ -1,6 +1,7 @@
 // ─── POST /api/tts — ElevenLabs voice output ─────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
+import { elevenLabsApiKey } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -12,7 +13,7 @@ const VOICES: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
-  const key = process.env.ELEVENLABS_API_KEY;
+  const key = elevenLabsApiKey();
   if (!key) {
     return NextResponse.json({ error: "Voice output is not configured (missing ELEVENLABS_API_KEY)" }, { status: 501 });
   }

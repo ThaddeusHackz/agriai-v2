@@ -8,8 +8,8 @@ export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
-    const q = (query || "").toString().trim().slice(0, 300);
+    const body = await request.json();
+    const q = (body.query || body.q || "").toString().trim().slice(0, 300);
     if (!q) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
     }

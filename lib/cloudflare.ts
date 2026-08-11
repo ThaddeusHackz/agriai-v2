@@ -5,6 +5,8 @@
 // Every call degrades gracefully: when keys are missing or the API fails,
 // callers fall back to the next provider in the chain.
 
+import { cloudflareAccountId, cloudflareApiKey } from "./env";
+
 const CHAT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
 
@@ -14,12 +16,12 @@ export interface CloudflareMessage {
 }
 
 export function cloudflareConfigured(): boolean {
-  return Boolean(process.env.CLOUDFLARE_API_KEY && process.env.CLOUDFLARE_ACCOUNT_ID);
+  return Boolean(cloudflareApiKey() && cloudflareAccountId());
 }
 
 function baseUrl(): string | null {
-  const account = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const key = process.env.CLOUDFLARE_API_KEY;
+  const account = cloudflareAccountId();
+  const key = cloudflareApiKey();
   if (!account || !key) return null;
   return `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(
     account
@@ -28,11 +30,12 @@ function baseUrl(): string | null {
 
 async function run(model: string, body: unknown, signal?: AbortSignal) {
   const base = baseUrl();
-  if (!base) throw new Error("Cloudflare AI is not configured");
+  const key = cloudflareApiKey();
+  if (!base || !key) throw new Error("Cloudflare AI is not configured");
   const res = await fetch(`${base}/${model}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
+      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
