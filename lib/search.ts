@@ -1,5 +1,7 @@
 // ─── Web search (Tavily) with graceful fallback ──────────────────────────────
 
+import { tavilyApiKey } from "./env";
+
 export interface SearchSource {
   title: string;
   url: string;
@@ -12,10 +14,60 @@ export interface SearchResult {
   demo: boolean;
 }
 
+async function keylessSearch(query: string): Promise<SearchResult> {
+  const sources: SearchSource[] = [];
+  try {
+    const wiki = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=4&namespace=0&format=json&origin=*`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    if (wiki.ok) {
+      const data = (await wiki.json()) as [string, string[], string[], string[]];
+      const titles = data[1] || [];
+      const descs = data[2] || [];
+      const urls = data[3] || [];
+      titles.forEach((title, i) => {
+        if (urls[i]) sources.push({ title, url: urls[i], snippet: descs[i] || "" });
+      });
+    }
+  } catch (err) {
+    console.error("[search] wikipedia failed:", (err as Error).message);
+  }
+  try {
+    const ddg = await fetch(
+      `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+    if (ddg.ok) {
+      const data = (await ddg.json()) as {
+        AbstractText?: string;
+        AbstractURL?: string;
+        Heading?: string;
+        RelatedTopics?: { Text?: string; FirstURL?: string }[];
+      };
+      if (data.AbstractURL && data.Heading) {
+        sources.unshift({
+          title: data.Heading,
+          url: data.AbstractURL,
+          snippet: data.AbstractText || "",
+        });
+      }
+      for (const t of data.RelatedTopics || []) {
+        if (t.FirstURL && t.Text && sources.length < 6) {
+          sources.push({ title: t.Text.slice(0, 80), url: t.FirstURL, snippet: t.Text });
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[search] duckduckgo failed:", (err as Error).message);
+  }
+  return { sources, demo: sources.length === 0 };
+}
+
 export async function searchWeb(query: string): Promise<SearchResult> {
-  const key = process.env.TAVILY_API_KEY;
+  const key = tavilyApiKey();
   if (!key) {
-    return { sources: [], demo: true };
+    return keylessSearch(query);
   }
   try {
     const res = await fetch("https://api.tavily.com/search", {
@@ -45,7 +97,7 @@ export async function searchWeb(query: string): Promise<SearchResult> {
     };
   } catch (err) {
     console.error("[search] Tavily failed:", (err as Error).message);
-    return { sources: [], demo: true };
+    return keylessSearch(query);
   }
 }
 

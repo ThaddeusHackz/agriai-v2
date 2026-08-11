@@ -4,6 +4,8 @@
 // can fall back gracefully — the product always works, with live images on Render
 // once the key is set there. See render.yaml / .env.example.
 
+import { unsplashAccessKey } from "./env";
+
 export interface CropImage {
   id: string;
   alt: string;
@@ -24,7 +26,7 @@ export interface ImageResult {
  * Returns up to count landscape images with attribution data.
  */
 export async function getImages(query: string, count = 4): Promise<ImageResult> {
-  const key = process.env.UNSPLASH_ACCESS_KEY;
+  const key = unsplashAccessKey();
   const q = query.trim();
   if (!key || !q) {
     return { images: [], demo: true };

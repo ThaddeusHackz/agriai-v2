@@ -6,15 +6,162 @@
 import { GoogleGenAI } from "@google/genai";
 import { getDB } from "./db";
 import { getLanguage, languageInstruction } from "./languages";
+import { geminiApiKey } from "./env";
 
 let aiClient: GoogleGenAI | null = null;
+let cachedKey = "";
 
-/** Returns a Gemini client, or null when GEMINI_API_KEY is unset (offline demo). */
+const CHAT_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-001",
+  "gemini-flash-latest",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-latest",
+];
+
+const IMAGE_MODELS = [
+  "gemini-2.5-flash-image",
+  "gemini-2.0-flash-preview-image-generation",
+  "gemini-2.0-flash-exp-image-generation",
+];
+
+/** Returns a Gemini client, or null when no Gemini/Google key is set. */
 export function getGemini(): GoogleGenAI | null {
-  const key = process.env.GEMINI_API_KEY;
+  const key = geminiApiKey();
   if (!key) return null;
-  if (!aiClient) aiClient = new GoogleGenAI({ apiKey: key });
+  if (!aiClient || cachedKey !== key) {
+    cachedKey = key;
+    aiClient = new GoogleGenAI({ apiKey: key });
+  }
   return aiClient;
+}
+
+export function geminiConfigured(): boolean {
+  return Boolean(geminiApiKey());
+}
+
+function uniqueModels(preferred?: string): string[] {
+  const list = [preferred, ...CHAT_MODELS].filter(Boolean) as string[];
+  return [...new Set(list)];
+}
+
+function thinkingFor(model: string) {
+  return /2\.5|2-5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+}
+
+export async function geminiGenerateText(opts: {
+  model?: string;
+  contents: unknown;
+  systemInstruction?: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+  signal?: AbortSignal;
+}): Promise<{ text: string; model: string }> {
+  const client = getGemini();
+  if (!client) throw new Error("GEMINI_API_KEY is not set");
+
+  let lastErr: Error | null = null;
+  for (const model of uniqueModels(opts.model)) {
+    try {
+      const response = await client.models.generateContent({
+        model,
+        contents: opts.contents as never,
+        config: {
+          systemInstruction: opts.systemInstruction,
+          temperature: opts.temperature ?? 0.7,
+          maxOutputTokens: opts.maxOutputTokens ?? 1024,
+          abortSignal: opts.signal,
+          ...thinkingFor(model),
+        },
+      });
+      const text = (response.text || "").trim();
+      if (text) return { text, model };
+      lastErr = new Error(`empty response from ${model}`);
+    } catch (err) {
+      lastErr = err as Error;
+      console.error(`[ai] ${model} failed:`, lastErr.message);
+    }
+  }
+  throw lastErr || new Error("all Gemini models failed");
+}
+
+export async function geminiGenerateStream(opts: {
+  model?: string;
+  contents: unknown;
+  systemInstruction?: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+  signal?: AbortSignal;
+  onDelta: (text: string) => void;
+}): Promise<{ text: string; model: string }> {
+  const client = getGemini();
+  if (!client) throw new Error("GEMINI_API_KEY is not set");
+
+  let lastErr: Error | null = null;
+  for (const model of uniqueModels(opts.model)) {
+    try {
+      const response = await client.models.generateContentStream({
+        model,
+        contents: opts.contents as never,
+        config: {
+          systemInstruction: opts.systemInstruction,
+          temperature: opts.temperature ?? 0.7,
+          maxOutputTokens: opts.maxOutputTokens ?? 1024,
+          abortSignal: opts.signal,
+          ...thinkingFor(model),
+        },
+      });
+      let full = "";
+      for await (const chunk of response) {
+        const delta = chunk.text || "";
+        if (delta) {
+          full += delta;
+          opts.onDelta(delta);
+        }
+      }
+      if (full.trim()) return { text: full, model };
+      lastErr = new Error(`empty stream from ${model}`);
+    } catch (err) {
+      lastErr = err as Error;
+      console.error(`[ai] stream ${model} failed:`, lastErr.message);
+    }
+  }
+  throw lastErr || new Error("all Gemini stream models failed");
+}
+
+/** Image generation via Gemini native image models. */
+export async function geminiImage(prompt: string): Promise<string> {
+  const client = getGemini();
+  if (!client) throw new Error("GEMINI_API_KEY is not set");
+
+  let lastErr: Error | null = null;
+  for (const model of IMAGE_MODELS) {
+    try {
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseModalities: ["IMAGE", "TEXT"],
+          temperature: 0.8,
+        },
+      });
+      const parts = response.candidates?.[0]?.content?.parts || [];
+      for (const part of parts) {
+        const inline = (part as { inlineData?: { data?: string; mimeType?: string } }).inlineData;
+        if (inline?.data) {
+          const mime = inline.mimeType || "image/png";
+          return `data:${mime};base64,${inline.data}`;
+        }
+      }
+      lastErr = new Error(`no image in ${model} response`);
+    } catch (err) {
+      lastErr = err as Error;
+      console.error(`[ai] image ${model} failed:`, lastErr.message);
+    }
+  }
+  throw lastErr || new Error("Gemini image generation failed");
 }
 
 /** Parse a data-URL (data:image/...;base64,...) or raw base64 into Gemini inline parts. */
@@ -109,47 +256,54 @@ export async function detectCropDisease(
   language: string
 ): Promise<DiseaseResult> {
   const client = getGemini();
-  if (!client) return FALLBACK_DISEASE;
-  const model = getDB().settings.chat.visionModel;
+  if (!client) return { ...FALLBACK_DISEASE, description: FALLBACK_DISEASE.description + " (GEMINI_API_KEY missing or using an unrecognized env name — also accepts GOOGLE_API_KEY.)" };
+  const preferred = getDB().settings.chat.visionModel;
   const { mimeType, data } = parseImageData(imageInput);
-  try {
-    const response = await client.models.generateContent({
-      model,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `You are a crop disease detection expert for Ghanaian agriculture. Analyze this photo of a crop/plant.
+  const prompt = `You are a crop disease detection expert for Ghanaian agriculture. Analyze this photo of a crop/plant.
 Respond in ${language === "en" ? "English" : "English with a short summary in the farmer's language"}.
 Return STRICT JSON with exactly this shape:
 {"detected":"disease or condition name (or 'Healthy plant')","confidence":0-100,"description":"2-3 sentence description of symptoms and cause","treatment":["step1","step2","step3","step4"]}
-If the image is not a plant, set detected to "Not a plant image" and confidence 0.`,
-            },
-            { inlineData: { mimeType, data } },
-          ],
+If the image is not a plant, set detected to "Not a plant image" and confidence 0.`;
+
+  let lastErr = "";
+  for (const model of uniqueModels(preferred)) {
+    try {
+      const response = await client.models.generateContent({
+        model,
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType, data } },
+            ],
+          },
+        ],
+        config: {
+          temperature: 0.2,
+          maxOutputTokens: 1024,
+          ...thinkingFor(model),
         },
-      ],
-      config: {
-        temperature: 0.2,
-        maxOutputTokens: 1024,
-        // Disable Gemini 2.5 thinking for fast, predictable, clean JSON output.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
-    const raw = response.text || "";
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("no JSON in vision response");
-    const parsed = JSON.parse(jsonMatch[0]);
-    return {
-      detected: String(parsed.detected || "Unknown"),
-      confidence: Math.min(100, Math.max(0, Number(parsed.confidence) || 0)),
-      description: String(parsed.description || ""),
-      treatment: Array.isArray(parsed.treatment) ? parsed.treatment.map(String).slice(0, 6) : [],
-      demo: false,
-    };
-  } catch (err) {
-    console.error("[ai] Gemini vision failed:", (err as Error).message);
-    return FALLBACK_DISEASE;
+      });
+      const raw = response.text || "";
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("no JSON in vision response");
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        detected: String(parsed.detected || "Unknown"),
+        confidence: Math.min(100, Math.max(0, Number(parsed.confidence) || 0)),
+        description: String(parsed.description || ""),
+        treatment: Array.isArray(parsed.treatment) ? parsed.treatment.map(String).slice(0, 6) : [],
+        demo: false,
+      };
+    } catch (err) {
+      lastErr = (err as Error).message;
+      console.error("[ai] Gemini vision failed:", model, lastErr);
+    }
   }
+  return {
+    ...FALLBACK_DISEASE,
+    detected: "Vision analysis failed",
+    description: `Gemini vision could not analyze this photo (${lastErr || "unknown error"}). Check that GEMINI_API_KEY is valid and the Generative Language API is enabled.`,
+  };
 }

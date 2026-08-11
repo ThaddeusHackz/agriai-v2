@@ -301,8 +301,20 @@ export default function Chat() {
         body: JSON.stringify({ text: msg.content.replace(/[#*_>\[\]()]/g, "").slice(0, 1200), language }),
       });
       if (!res.ok) {
+        const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
+        if (synth) {
+          const u = new SpeechSynthesisUtterance(
+            msg.content.replace(/[#*_>[\]()]/g, "").slice(0, 1200)
+          );
+          u.lang = language === "fr" ? "fr-FR" : "en-GH";
+          u.onend = () => setSpeakingId(null);
+          synth.cancel();
+          synth.speak(u);
+          return;
+        }
         const data = await res.json().catch(() => ({}));
         toast.error(data.error || "Voice output failed");
+        setSpeakingId(null);
         return;
       }
       const blob = await res.blob();
