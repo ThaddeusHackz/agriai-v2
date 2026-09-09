@@ -437,7 +437,7 @@ def doc01(story: Story) -> None:
         ["View", "React 19.2.4", "Public product, streaming chat and admin single-page shell"],
         ["Language", "TypeScript 5", "Strict types across UI, route handlers and libraries"],
         ["Styling", "Tailwind CSS 4 and PostCSS", "Theme, responsive layout and utility classes"],
-        ["Primary AI SDK", "@google/genai 2.16", "Gemini text, streaming, vision, audio transcription and image attempts"],
+        ["Primary AI SDK", "@google/genai 2.21", "Gemini text, streaming, vision, audio transcription and image attempts"],
         ["Fallback AI", "Cloudflare REST", "Llama chat and Flux image generation"],
         ["Persistence", "Node fs and pg", "Atomic local JSON plus PostgreSQL JSONB mirror"],
         ["Authentication", "bcryptjs and random opaque cookies", "Password hashing and server-stored sessions"],
@@ -536,15 +536,13 @@ geminiApiKey aliases:
     heading(story, "3. Chat model waterfall")
     table(story, ["Order", "Configured model name", "Role"], [
         ["0", "Admin preferred settings.chat.model", "Inserted first when non-empty"],
-        ["1", "gemini-2.5-flash", "Primary seeded chat and vision model"],
-        ["2", "gemini-2.5-flash-lite", "Lower-cost Gemini fallback"],
-        ["3", "gemini-2.0-flash", "Compatibility fallback"],
-        ["4", "gemini-2.0-flash-001", "Pinned compatibility fallback"],
-        ["5", "gemini-flash-latest", "Alias fallback"],
-        ["6", "gemini-1.5-flash", "Legacy fallback"],
-        ["7", "gemini-1.5-flash-latest", "Legacy alias fallback"],
+        ["1", "gemini-3.5-flash", "Primary seeded chat and vision model (GA)"],
+        ["2", "gemini-3-flash-preview", "Cheap preview fallback"],
+        ["3", "gemini-3.1-flash-lite", "Cost-efficient multimodal fallback"],
+        ["4", "gemini-3.5-flash-lite", "GA cost-efficient fallback"],
+        ["5", "gemini-3.1-pro-preview", "Strongest reasoning fallback"],
     ], [16 * mm, 63 * mm, 95 * mm])
-    para(story, "uniqueModels() removes duplicate names while preserving order. geminiGenerateText() and geminiGenerateStream() catch each model error, log the model and continue. For names matching 2.5, thinkingBudget is set to zero. A non-empty response ends the waterfall. If all models fail, the last error is thrown to the route orchestrator.")
+    para(story, "uniqueModels() removes duplicate names while preserving order. geminiGenerateText() and geminiGenerateStream() catch each model error, log the model and continue. Gemini 3 models are thinking-first, so thinking stays on for chat quality; transcription and health pings opt out with thinkingBudget 0. A non-empty response ends the waterfall. If all models fail, the last error is thrown to the route orchestrator.")
     heading(story, "4. Exact chat request transformation")
     numbered(story, [
         "Parse JSON. Invalid JSON returns HTTP 400.",
@@ -615,12 +613,12 @@ localAnswer(question):
     para(story, "POST /api/generate caps the prompt at 500 characters and requires a case-insensitive substring from SAFE_SUBJECTS. It adds a photographic suffix. Cloudflare Flux-1-schnell is attempted with four steps. Gemini image models are attempted only if Cloudflare does not return a data URL. Success returns {ok, image, provider}. The image is represented in JSON as base64, which increases payload size and memory use.")
     table(story, ["Priority", "Provider or model", "Output"], [
         ["1", "Cloudflare @cf/black-forest-labs/flux-1-schnell", "PNG data URL"],
-        ["2", "gemini-2.5-flash-image", "First inline image part"],
-        ["3", "gemini-2.0-flash-preview-image-generation", "First inline image part"],
-        ["4", "gemini-2.0-flash-exp-image-generation", "First inline image part"],
+        ["2", "gemini-3.1-flash-image", "Nano Banana 2 — first inline image part"],
+        ["3", "gemini-3.1-flash-image-preview", "Nano Banana 2 preview alias"],
+        ["4", "gemini-3-pro-image", "Nano Banana Pro — first inline image part"],
     ], [20 * mm, 95 * mm, 59 * mm])
     heading(story, "12. Voice input and output")
-    para(story, "Chat.tsx first tries the browser SpeechRecognition interface. If unavailable, MediaRecorder captures an audio blob and posts multipart FormData to /api/transcribe. That route permits up to 25 MB, base64 encodes the complete file and asks Gemini 2.5 Flash to transcribe verbatim. Output speech posts up to 1,500 characters to /api/tts. ElevenLabs eleven_multilingual_v2 returns MPEG audio. English and French use the Rachel voice identifier, while other languages use the default multilingual identifier.")
+    para(story, "Chat.tsx first tries the browser SpeechRecognition interface. If unavailable, MediaRecorder captures an audio blob and posts multipart FormData to /api/transcribe. That route permits up to 25 MB, base64 encodes the complete file and asks Gemini 3.5 Flash to transcribe verbatim. Output speech posts up to 1,500 characters to /api/tts. ElevenLabs eleven_multilingual_v2 returns MPEG audio. English and French use the Rachel voice identifier, while other languages use the default multilingual identifier.")
     heading(story, "13. Provider failure matrix")
     table(story, ["Capability", "Primary", "Fallback", "Last behavior"], [
         ["Chat", "Gemini stream", "Cloudflare Llama", "Local knowledge, HTTP 200 SSE, demo true"],
@@ -834,7 +832,7 @@ components/Chat.tsx microphone
     getUserMedia -> MediaRecorder -> Blob
     POST /api/transcribe multipart form
     route buffers File -> base64
-    lib/ai.ts geminiGenerateText, preferred gemini-2.5-flash
+    lib/ai.ts geminiGenerateText, preferred gemini-3.5-flash
     response text is inserted into chat input
 """)
     heading(story, "7. Path F: voice output")

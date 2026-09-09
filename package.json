@@ -14,7 +14,7 @@
     "force-admin": "node scripts/force-admin-credentials.cjs"
   },
   "dependencies": {
-    "@google/genai": "^2.16.0",
+    "@google/genai": "^2.21.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -66,8 +66,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   chat: {
     // Google Gemini is the primary model; Cloudflare Workers AI is the
     // automatic fallback; a local knowledge base is the last resort.
-    model: "gemini-2.5-flash", // chat (fast, multimodal)
-    visionModel: "gemini-2.5-flash", // crop disease detection (multimodal)
+    model: "gemini-3.5-flash", // chat (fast, multimodal)
+    visionModel: "gemini-3.5-flash", // crop disease detection (multimodal)
     temperature: 0.7,
     maxTokens: 1024,
     webSearchDefault: false,

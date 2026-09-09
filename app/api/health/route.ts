@@ -24,9 +24,9 @@ export async function GET() {
     try {
       const client = getGemini()!;
       const res = await client.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3.5-flash",
         contents: [{ role: "user", parts: [{ text: "Reply with the single word OK" }] }],
-        config: { maxOutputTokens: 8, temperature: 0 },
+        config: { maxOutputTokens: 8, temperature: 0, thinkingConfig: { thinkingBudget: 0 } },
       });
       const text = (res.text || "").trim();
       checks.gemini.live = /ok/i.test(text) || text.length > 0;
