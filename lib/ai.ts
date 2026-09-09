@@ -11,20 +11,24 @@ import { geminiApiKey } from "./env";
 let aiClient: GoogleGenAI | null = null;
 let cachedKey = "";
 
+// Gemini 3+ model waterfall. Google has moved on from the 2.5/2.0/1.5 lines
+// (Gemini 2.0 Flash was shut down in June 2026, Gemini 1.5 is retired, and the
+// 2.5 family is being retired) — so we target the current Gemini 3 family,
+// newest-first, and fall through gracefully if a model is unavailable.
 const CHAT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-001",
-  "gemini-flash-latest",
-  "gemini-1.5-flash",
-  "gemini-1.5-flash-latest",
+  "gemini-3.5-flash",        // GA workhorse — fast, multimodal, strong reasoning
+  "gemini-3-flash-preview",  // preview fallback (cheap)
+  "gemini-3.1-flash-lite",   // cost-efficient multimodal fallback
+  "gemini-3.5-flash-lite",   // GA cost-efficient fallback
+  "gemini-3.1-pro-preview",  // strongest reasoning fallback
 ];
 
+// Native image generation: Nano Banana 2 (Flash Image) then Nano Banana Pro.
 const IMAGE_MODELS = [
-  "gemini-2.5-flash-image",
-  "gemini-2.0-flash-preview-image-generation",
-  "gemini-2.0-flash-exp-image-generation",
+  "gemini-3.1-flash-image",         // Nano Banana 2 (stable) — fast, cost-efficient
+  "gemini-3.1-flash-image-preview", // Nano Banana 2 (preview alias)
+  "gemini-3-pro-image",             // Nano Banana Pro (stable) — highest quality
+  "gemini-3-pro-image-preview",     // Nano Banana Pro (preview alias)
 ];
 
 /** Returns a Gemini client, or null when no Gemini/Google key is set. */
@@ -47,9 +51,9 @@ function uniqueModels(preferred?: string): string[] {
   return [...new Set(list)];
 }
 
-function thinkingFor(model: string) {
-  return /2\.5|2-5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {};
-}
+// Gemini 3 models are thinking-first: thinking stays on by default (better
+// answers). Callers that want a fast, deterministic reply (transcription,
+// health pings) opt out by passing `thinkingBudget: 0`.
 
 export async function geminiGenerateText(opts: {
   model?: string;
@@ -58,6 +62,7 @@ export async function geminiGenerateText(opts: {
   temperature?: number;
   maxOutputTokens?: number;
   signal?: AbortSignal;
+  thinkingBudget?: number; // 0 disables thinking for fast/deterministic replies
 }): Promise<{ text: string; model: string }> {
   const client = getGemini();
   if (!client) throw new Error("GEMINI_API_KEY is not set");
@@ -73,7 +78,9 @@ export async function geminiGenerateText(opts: {
           temperature: opts.temperature ?? 0.7,
           maxOutputTokens: opts.maxOutputTokens ?? 1024,
           abortSignal: opts.signal,
-          ...thinkingFor(model),
+          ...(opts.thinkingBudget !== undefined
+            ? { thinkingConfig: { thinkingBudget: opts.thinkingBudget } }
+            : {}),
         },
       });
       const text = (response.text || "").trim();
@@ -110,7 +117,6 @@ export async function geminiGenerateStream(opts: {
           temperature: opts.temperature ?? 0.7,
           maxOutputTokens: opts.maxOutputTokens ?? 1024,
           abortSignal: opts.signal,
-          ...thinkingFor(model),
         },
       });
       let full = "";
@@ -282,7 +288,6 @@ If the image is not a plant, set detected to "Not a plant image" and confidence 
         config: {
           temperature: 0.2,
           maxOutputTokens: 1024,
-          ...thinkingFor(model),
         },
       });
       const raw = response.text || "";

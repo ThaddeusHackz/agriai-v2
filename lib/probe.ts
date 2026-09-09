@@ -31,7 +31,7 @@ function errText(err: unknown, key?: string): string {
 
 // ─── Gemini ──────────────────────────────────────────────────────────────────
 
-const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+const GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"];
 
 export async function probeGemini(key: string): Promise<ProbeResult> {
   const started = Date.now();
@@ -49,7 +49,7 @@ export async function probeGemini(key: string): Promise<ProbeResult> {
           config: {
             maxOutputTokens: 8,
             temperature: 0,
-            ...(/2\.5|2-5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+            thinkingConfig: { thinkingBudget: 0 },
           },
         });
         const text = (res.text || "").trim();

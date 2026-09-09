@@ -1,7 +1,7 @@
 // ─── POST /api/transcribe — Gemini voice input ───────────────────────────────
 // Browser speech recognition is the primary voice input; this route is the
 // fallback for browsers without SpeechRecognition. Audio is transcribed by
-// Google Gemini (gemini-2.5-flash understands audio natively) — no extra
+// Google Gemini (gemini-3.5-flash understands audio natively) — no extra
 // provider needed, the GEMINI_API_KEY powers chat, vision AND voice.
 
 import { NextRequest, NextResponse } from "next/server";
@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
 
     const { geminiGenerateText } = await import("@/lib/ai");
     const { text } = await geminiGenerateText({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       temperature: 0,
       maxOutputTokens: 1024,
+      thinkingBudget: 0,
       contents: [
         {
           role: "user",

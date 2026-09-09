@@ -144,7 +144,7 @@ npm run build       # production build
 
 ## 🛠 Tech stack
 
-Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Google Gemini 2.5 Flash (chat + vision + transcription) · Cloudflare Workers AI (Llama 3.3 70B + Flux image gen) · OpenWeatherMap · Open-Meteo · Tavily · ElevenLabs · PostgreSQL (`pg`) · bcryptjs · Framer Motion · React Markdown
+Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Google Gemini 3 Flash (chat + vision + transcription) · Cloudflare Workers AI (Llama 3.3 70B + Flux image gen) · OpenWeatherMap · Open-Meteo · Tavily · ElevenLabs · PostgreSQL (`pg`) · bcryptjs · Framer Motion · React Markdown
 
 ## 👤 Founder
 
