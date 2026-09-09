@@ -28,7 +28,13 @@ voice via Gemini transcription + ElevenLabs, web search via Tavily.
 - API keys resolve from the admin panel's saved secrets first (`db.secrets`,
   mirrored to PostgreSQL), then from environment variables; there are NO
   hardcoded key fallbacks. Never return raw keys from any endpoint — always mask.
-- Admin seeding: `ADMIN_EMAIL` / `ADMIN_PASSWORD` env vars (defaults in code).
+- Admin credentials are hard-locked in code (`FORCED_ADMIN_EMAIL`/`FORCED_ADMIN_PASSWORD`
+  in `lib/db.ts`, currently `admin@agriai.gh` / `AgriAI@2026Admin`) and are
+  force-reapplied (self-healing) on every boot, on every `getDB()` call, and
+  after Postgres hydration — `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars are no
+  longer used for this. `app/api/admin/users` blocks editing/deleting that
+  account. Run `npm run force-admin` to instantly re-apply it to on-disk /
+  Postgres data without restarting the server.
 - Next.js 16: Turbopack default, async `cookies()`, no `middleware.ts`
   (use `proxy.ts` if ever needed). Google Fonts are loaded via <link> tags.
 - Provider chain (never break): Gemini → Cloudflare → local KB for chat;

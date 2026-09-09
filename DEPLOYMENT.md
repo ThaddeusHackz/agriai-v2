@@ -14,7 +14,7 @@ This guide walks you through deploying the complete AgriAI platform (frontend + 
   - `OPENWEATHER_API_KEY` — openweathermap.org → *API Keys* (free tier is enough) — powers weather forecasts
   - `TAVILY_API_KEY` *(optional)* — tavily.com — live web search
   - `ELEVENLABS_API_KEY` *(optional)* — elevenlabs.io — voice output
-- Your chosen admin email + password (defaults: `admin@agriai.gh` / set your own strong password)
+- The admin login is hard-locked in code to `admin@agriai.gh` / `AgriAI@2026Admin` (self-healing on every boot — see the "Admin login" section in README.md)
 
 > 💡 Only `GEMINI_API_KEY` is truly required for full live AI. Everything else has a built-in fallback.
 
@@ -67,11 +67,10 @@ That's it — the blueprint already configures:
 | `OPENWEATHER_API_KEY` | *your OpenWeather key* |
 | `TAVILY_API_KEY` | *your Tavily key (optional)* |
 | `ELEVENLABS_API_KEY` | *your ElevenLabs key (optional)* |
-| `ADMIN_EMAIL` | `admin@agriai.gh` |
-| `ADMIN_PASSWORD` | *a strong password — this seeds your admin login* |
 | `ADMIN_NAME` | `AgriAI Admin` |
 
-(`NODE_ENV`, `NEXT_PUBLIC_SITE_URL` and `DATABASE_URL` are already set by the blueprint.)
+(`NODE_ENV`, `NEXT_PUBLIC_SITE_URL` and `DATABASE_URL` are already set by the blueprint.
+Admin login credentials are hard-locked in code — see below — and are not set via env vars.)
 
 4. Click **Save Changes** — Render redeploys automatically.
 
@@ -110,7 +109,12 @@ A: Only `GEMINI_API_KEY` for live AI answers. Without others: weather falls back
 A: Yes. Sign in to `/admin` → *API Keys* → paste each key, hit **Test** to verify it live, then **Save all keys**. They're stored server-side (and mirrored to PostgreSQL), so they persist across restarts and deploys — and a pasted key always takes priority over the environment variable.
 
 **Q: How do I change admin password?**
-A: Admin panel → *Admin Users* → edit → set new password. (Or change `ADMIN_PASSWORD` env var and reset the database in Settings → Danger zone.)
+A: The admin account (`admin@agriai.gh` / `AgriAI@2026Admin`) is intentionally
+hard-locked in code and self-heals on every boot — the admin panel refuses to
+rename, demote, delete, or change the password of this specific account. To
+change this policy, edit `FORCED_ADMIN_EMAIL`/`FORCED_ADMIN_PASSWORD` in
+`lib/db.ts` and redeploy. You can still create *additional* admin/editor
+accounts with different emails from the admin panel as normal.
 
 ---
 

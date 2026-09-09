@@ -2,8 +2,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, publicUser, hashPassword, createUser } from "@/lib/auth";
-import { getDB, mutate } from "@/lib/db";
+import { getDB, mutate, FORCED_ADMIN_EMAIL } from "@/lib/db";
 import { validEmail } from "@/lib/utils";
+
+const LOCKED_MSG =
+  "This account's credentials are locked by system policy for this deployment and cannot be changed or removed.";
 
 export const runtime = "nodejs";
 
@@ -34,6 +37,9 @@ export async function POST(request: NextRequest) {
   if (db.users.some((u) => u.email.toLowerCase() === String(email).trim().toLowerCase())) {
     return NextResponse.json({ error: "A user with that email already exists" }, { status: 409 });
   }
+  if (String(email).trim().toLowerCase() === FORCED_ADMIN_EMAIL.toLowerCase()) {
+    return NextResponse.json({ error: LOCKED_MSG }, { status: 409 });
+  }
 
   const created = createUser(
     String(name),
@@ -56,6 +62,10 @@ export async function PATCH(request: NextRequest) {
   const db = getDB();
   const target = db.users.find((u) => u.id === id);
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  if (target.email.toLowerCase() === FORCED_ADMIN_EMAIL.toLowerCase()) {
+    return NextResponse.json({ error: LOCKED_MSG }, { status: 403 });
+  }
 
   if (target.id === user.id && role === "editor") {
     return NextResponse.json({ error: "You cannot demote yourself" }, { status: 400 });
@@ -85,6 +95,12 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   if (id === user.id) {
     return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
+  }
+
+  const db = getDB();
+  const target = db.users.find((u) => u.id === id);
+  if (target && target.email.toLowerCase() === FORCED_ADMIN_EMAIL.toLowerCase()) {
+    return NextResponse.json({ error: LOCKED_MSG }, { status: 403 });
   }
 
   mutate((db) => {

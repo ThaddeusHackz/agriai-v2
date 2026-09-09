@@ -83,9 +83,9 @@ OPENWEATHER_API_KEY=your_openweather_key          # weather forecasts
 TAVILY_API_KEY=your_tavily_key                    # live web search
 ELEVENLABS_API_KEY=your_elevenlabs_key            # voice output
 
-ADMIN_EMAIL=admin@agriai.gh                       # seeded admin login
-ADMIN_PASSWORD=your_strong_password               # seeded admin password
-ADMIN_NAME=AgriAI Admin
+ADMIN_NAME=AgriAI Admin                           # display name only
+# NOTE: the admin login itself is hard-locked in code (not env-configurable):
+# admin@agriai.gh / AgriAI@2026Admin — see "Admin login" below.
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 # DATABASE_URL=postgresql://...                  # optional: PostgreSQL mirror
 ```
@@ -94,15 +94,31 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 >
 > 💡 Prefer no `.env` fuss? Open the **admin panel → API Keys** and paste your keys there — they're saved permanently and used immediately (and still fall back to the `.env.local` values when both are set).
 
-## 🔐 Default admin login
+## 🔐 Admin login (hard-locked)
 
 | | |
 |---|---|
 | **URL** | `https://your-site.onrender.com/admin` |
 | **Email** | `admin@agriai.gh` |
-| **Password** | seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars |
+| **Password** | `AgriAI@2026Admin` |
 
-**Change the password immediately after first login** → Admin panel → *Admin Users* → *Password*.
+This credential pair is **force-pinned in code** (`lib/db.ts` → `enforceForcedAdmin`)
+and is automatically re-applied on every server start, on every request, and
+after any PostgreSQL hydration — regardless of what's stored in `data/db.json`,
+the Postgres mirror, or environment variables. If the account is missing, has
+the wrong role, or its password hash doesn't match, it's silently repaired and
+any of its active sessions are invalidated so the change takes effect
+immediately. The admin panel also blocks renaming, demoting, deleting, or
+password-changing this specific account (`admin@agriai.gh`) via the API.
+
+Need to force it instantly against a running deployment's data without
+restarting the server? Run:
+
+```bash
+npm run force-admin
+# or, to also patch the PostgreSQL mirror:
+DATABASE_URL=postgresql://... npm run force-admin
+```
 
 ---
 

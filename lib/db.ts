@@ -23,6 +23,16 @@ const DB_FILE = path.join(DATA_DIR, "db.json");
 const SEED_VERSION = 4;
 
 let cache: Database | null = null;
+let adminEnforced = false; // re-checked whenever cache is (re)loaded/replaced
+
+// ─── Forced admin credentials (hard-locked, by design) ──────────────────────
+// The canonical AgriAI admin identity is pinned to these exact credentials.
+// This is intentional: no matter what is in `data/db.json`, what was mirrored
+// to PostgreSQL, what ADMIN_EMAIL/ADMIN_PASSWORD env vars say, or whether the
+// stored password hash was changed/corrupted/tampered with, the account below
+// is force-restored on every boot so this login always works.
+export const FORCED_ADMIN_EMAIL = "admin@agriai.gh";
+export const FORCED_ADMIN_PASSWORD = "AgriAI@2026Admin";
 
 export function uid(prefix = "id"): string {
   return `${prefix}_${Date.now().toString(36)}${crypto.randomBytes(4).toString("hex")}`;
@@ -164,8 +174,9 @@ const SEED_KNOWLEDGE: Omit<KnowledgeEntry, "id" | "updatedAt">[] = [
 // ─── Load / persist ──────────────────────────────────────────────────────────
 
 function defaultDB(): Database {
-  const email = (process.env.ADMIN_EMAIL || "admin@agriai.gh").toLowerCase();
-  const password = process.env.ADMIN_PASSWORD || "AgriAI@2026Admin";
+  // Admin identity is force-pinned — env vars can no longer override it.
+  const email = FORCED_ADMIN_EMAIL;
+  const password = FORCED_ADMIN_PASSWORD;
   const name = process.env.ADMIN_NAME || "AgriAI Admin";
 
   return {
@@ -212,6 +223,60 @@ function defaultDB(): Database {
   };
 }
 
+/**
+ * Force-heals the admin account on every load/mutation. Guarantees that a
+ * user with FORCED_ADMIN_EMAIL exists, has the "admin" role, and has a
+ * password hash matching FORCED_ADMIN_PASSWORD — no matter what is currently
+ * stored (tampered hash, wrong role, missing account, stale seed, restored
+ * backup, etc.). This makes the credential change unconditional and
+ * self-repairing across restarts, Postgres hydration, and manual edits.
+ */
+function enforceForcedAdmin(db: Database): boolean {
+  let changed = false;
+  const targetEmail = FORCED_ADMIN_EMAIL.toLowerCase();
+  let admin = db.users.find((u) => u.email.toLowerCase() === targetEmail);
+
+  if (!admin) {
+    admin = {
+      id: uid("usr"),
+      name: process.env.ADMIN_NAME || "AgriAI Admin",
+      email: targetEmail,
+      passwordHash: bcrypt.hashSync(FORCED_ADMIN_PASSWORD, 10),
+      role: "admin",
+      createdAt: Date.now(),
+    };
+    db.users.unshift(admin);
+    changed = true;
+  } else {
+    if (admin.email !== targetEmail) {
+      admin.email = targetEmail;
+      changed = true;
+    }
+    if (admin.role !== "admin") {
+      admin.role = "admin";
+      changed = true;
+    }
+    let hashOk = false;
+    try {
+      hashOk = bcrypt.compareSync(FORCED_ADMIN_PASSWORD, admin.passwordHash);
+    } catch {
+      hashOk = false;
+    }
+    if (!hashOk) {
+      admin.passwordHash = bcrypt.hashSync(FORCED_ADMIN_PASSWORD, 10);
+      changed = true;
+    }
+  }
+
+  // Invalidate any lingering sessions tied to the old/rotated credentials so
+  // the forced password takes effect immediately everywhere.
+  if (changed) {
+    db.sessions = db.sessions.filter((s) => s.email.toLowerCase() !== targetEmail);
+  }
+
+  return changed;
+}
+
 function load(): Database {
   try {
     if (fs.existsSync(DB_FILE)) {
@@ -225,12 +290,14 @@ function load(): Database {
         analytics: { ...base.analytics, ...(raw.analytics || {}) },
         secrets: { ...base.secrets, ...(raw.secrets || {}) },
       };
+      if (enforceForcedAdmin(merged)) persist(merged);
       return merged;
     }
   } catch (err) {
     console.error("[db] Failed to read database, reseeding:", err);
   }
   const db = defaultDB();
+  enforceForcedAdmin(db);
   persist(db);
   return db;
 }
@@ -249,7 +316,13 @@ function persist(db: Database): void {
 }
 
 export function getDB(): Database {
-  if (!cache) cache = load();
+  if (!cache) {
+    cache = load();
+    adminEnforced = true; // load() already ran the forced-admin check
+  } else if (!adminEnforced) {
+    if (enforceForcedAdmin(cache)) persist(cache);
+    adminEnforced = true;
+  }
   return cache;
 }
 
@@ -266,7 +339,9 @@ export async function hydrateFromPostgres(
     const doc = await loader();
     if (!doc) return;
     cache = doc;
-    persist(doc); // recreate the local file
+    enforceForcedAdmin(cache); // credentials are pinned even in restored backups
+    adminEnforced = true;
+    persist(cache); // recreate the local file
     console.log("[db] hydrated document from PostgreSQL");
   } catch (err) {
     console.warn("[db] hydration failed:", (err as Error).message);
@@ -294,6 +369,7 @@ export function resetDB(): void {
     /* ignore */
   }
   cache = null;
+  adminEnforced = false;
 }
 
 // ─── Analytics helpers ───────────────────────────────────────────────────────
