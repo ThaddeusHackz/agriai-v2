@@ -3,7 +3,7 @@
 // ─── Knowledge Base tab: offline Q&A entries ─────────────────────────────────
 
 import React, { useEffect, useState } from "react";
-import { Plus, Save, Trash2, Pencil, Loader2, X, BookOpen } from "lucide-react";
+import { Save, Trash2, Pencil, Loader2, X, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "./api";
 

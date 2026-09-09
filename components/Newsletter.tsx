@@ -6,11 +6,9 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { useSite } from "@/lib/site-context";
 import { validEmail } from "@/lib/utils";
 
 export default function Newsletter() {
-  const { settings } = useSite();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);

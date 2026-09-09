@@ -8,7 +8,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Send, Mic, MicOff, Square, Globe, Brain, FlaskConical,
-  Volume2, VolumeX, ThumbsUp, ThumbsDown, Leaf, Search, Loader2,
+  Volume2, VolumeX, ThumbsUp, ThumbsDown, Leaf, Search, Loader2, Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import Markdown from "./Markdown";
@@ -64,9 +64,43 @@ export default function Chat() {
   const abortRef = useRef<AbortController | null>(null);
   const sidRef = useRef<string>("");
 
-  // init session id
+  // init session id + restore past conversation (persistent memory)
   useEffect(() => {
     sidRef.current = sessionId();
+    fetch(`/api/history?sessionId=${encodeURIComponent(sidRef.current)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const msgs = data?.chat?.messages;
+        if (!Array.isArray(msgs) || msgs.length === 0) return;
+        const restored: Msg[] = msgs
+          .filter(
+            (m: { role?: string; content?: string }) =>
+              m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
+          )
+          .map(
+            (m: {
+              id?: string;
+              role: string;
+              content: string;
+              sources?: Source[];
+              demo?: boolean;
+              provider?: Msg["provider"];
+              feedback?: "up" | "down";
+            }) => ({
+              id: m.id || `m_${Math.random().toString(36).slice(2)}`,
+              role: m.role as "user" | "assistant",
+              content: m.content,
+              sources: m.sources,
+              demo: m.demo,
+              provider: m.provider,
+              feedback: m.feedback,
+            })
+          );
+        if (restored.length) setMessages([WELCOME, ...restored]);
+      })
+      .catch(() => {
+        /* history restore is best-effort */
+      });
   }, []);
 
   useEffect(() => {
@@ -206,6 +240,19 @@ export default function Chat() {
   );
 
   const stop = () => abortRef.current?.abort();
+
+  const startNewChat = () => {
+    const old = sidRef.current;
+    abortRef.current?.abort();
+    localStorage.removeItem("agriai_session_id");
+    sidRef.current = sessionId();
+    setMessages([WELCOME]);
+    setBusy(false);
+    setStreaming(false);
+    if (old) {
+      fetch(`/api/history?sessionId=${encodeURIComponent(old)}`, { method: "DELETE" }).catch(() => {});
+    }
+  };
 
   const handleKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -363,6 +410,13 @@ export default function Chat() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={startNewChat}
+            className="chip hidden sm:inline-flex"
+            title="Start a new chat (forgets this conversation)"
+          >
+            <Plus className="w-3.5 h-3.5" /> New chat
+          </button>
           <button
             onClick={() => setShowSources(!showSources)}
             className={`chip hidden sm:inline-flex ${showSources ? "chip-active" : ""}`}

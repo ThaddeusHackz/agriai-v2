@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CloudSun, Droplets, Wind, Thermometer, Umbrella, MapPin, WifiOff } from "lucide-react";
+import { Droplets, Wind, Thermometer, Umbrella, MapPin, WifiOff } from "lucide-react";
 import Section from "./Section";
 import { useSite } from "@/lib/site-context";
 

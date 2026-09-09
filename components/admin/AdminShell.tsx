@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, Type, Palette, Brain, CircleDollarSign,
   BookOpen, MessagesSquare, Users, ThumbsUp, Mail, Settings, LogOut,
-  ExternalLink, Loader2, Menu, X,
+  ExternalLink, Loader2, Menu, X, KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "./api";
@@ -15,7 +15,7 @@ import Logo3D from "@/components/Logo3D";
 
 export type TabKey =
   | "dashboard" | "content" | "appearance" | "ai" | "prices"
-  | "knowledge" | "messages" | "users" | "feedback" | "subscribers" | "settings";
+  | "knowledge" | "messages" | "users" | "feedback" | "subscribers" | "settings" | "keys";
 
 export interface MeUser {
   id: string;
@@ -36,6 +36,7 @@ const TABS: { key: TabKey; label: string; icon: React.ElementType; adminOnly?: b
   { key: "users", label: "Admin Users", icon: Users, adminOnly: true },
   { key: "feedback", label: "Feedback", icon: ThumbsUp },
   { key: "subscribers", label: "Subscribers", icon: Mail },
+  { key: "keys", label: "API Keys", icon: KeyRound, adminOnly: true },
   { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
 ];
 

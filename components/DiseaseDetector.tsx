@@ -6,7 +6,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Upload, ImagePlus, Leaf, AlertTriangle, CheckCircle2, Loader2, Bug } from "lucide-react";
+import { ImagePlus, Leaf, AlertTriangle, CheckCircle2, Loader2, Bug } from "lucide-react";
 import Section from "./Section";
 import { useSite } from "@/lib/site-context";
 

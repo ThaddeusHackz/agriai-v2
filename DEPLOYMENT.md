@@ -106,6 +106,9 @@ A: Correct — Render's free Postgres is for testing. When you're ready, upgrade
 **Q: Do I need all the keys?**
 A: Only `GEMINI_API_KEY` for live AI answers. Without others: weather falls back to Open-Meteo, search runs offline, voice output is disabled, and the AI Studio hides gracefully. The site always works.
 
+**Q: Can I paste my keys in the admin panel instead of Render env vars?**
+A: Yes. Sign in to `/admin` → *API Keys* → paste each key, hit **Test** to verify it live, then **Save all keys**. They're stored server-side (and mirrored to PostgreSQL), so they persist across restarts and deploys — and a pasted key always takes priority over the environment variable.
+
 **Q: How do I change admin password?**
 A: Admin panel → *Admin Users* → edit → set new password. (Or change `ADMIN_PASSWORD` env var and reset the database in Settings → Danger zone.)
 

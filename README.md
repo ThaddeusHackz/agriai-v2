@@ -34,6 +34,7 @@
 - ✏️ **Content** — hero title/subtitle/badge, announcement bar, stats, quick prompts, footer
 - 🎨 **Appearance** — brand colors with live preview, show/hide any page section
 - 🧠 **AI Settings** — model, temperature, max tokens, all system prompts, default mode
+- 🔑 **API Keys** — paste, test & save provider keys; they persist permanently and take effect instantly
 - 💰 **Market Prices** — full CRUD on the price board
 - 📚 **Knowledge Base** — offline Q&A entries (also used as AI fallback)
 - 💬 **Messages** — browse/delete all conversations
@@ -44,7 +45,9 @@
 - ⚠️ **Settings** — info + danger zone (database reset)
 
 ### Backend (`/api/*`)
-`chat` · `search` · `transcribe` · `tts` · `vision` · `generate` (AI Studio) · `weather` · `prices` · `feedback` · `history` · `subscribe` · `contact` · `track` · `config` · `admin/login|logout|me|settings|analytics|users|messages|prices|knowledge|subscribers|feedback|reset`
+`chat` · `search` · `transcribe` · `tts` · `vision` · `generate` (AI Studio) · `weather` · `prices` · `feedback` · `history` · `subscribe` · `contact` · `track` · `config` · `admin/login|logout|me|settings|analytics|users|messages|prices|knowledge|subscribers|feedback|reset|apikeys`
+
+> 🔑 **API keys** can be pasted straight into the admin panel (Admin → *API Keys*). They're stored server-side in the document store **and mirrored to PostgreSQL**, so they work permanently across restarts and deploys — no `.env` editing required. A built-in forensic scan live-tests each key against its provider before/after you save.
 
 ### Database — PostgreSQL + JSON store
 - **With `DATABASE_URL`** (set automatically by the Render blueprint's managed Postgres): every write is mirrored to a `agriai_state` table and **hydrated back on restart** — data survives deploys on Render's free tier. Reset or sync anytime from the admin panel.
@@ -88,6 +91,8 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 > ⚠️ If a key is missing, that feature falls back gracefully — the rest of the site still works.
+>
+> 💡 Prefer no `.env` fuss? Open the **admin panel → API Keys** and paste your keys there — they're saved permanently and used immediately (and still fall back to the `.env.local` values when both are set).
 
 ## 🔐 Default admin login
 
