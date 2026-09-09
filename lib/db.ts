@@ -198,6 +198,16 @@ function defaultDB(): Database {
       totalSubscribers: 0,
       firstSeen: Date.now(),
     },
+    secrets: {
+      gemini: "",
+      cloudflareApi: "",
+      cloudflareAccountId: "",
+      openweather: "",
+      tavily: "",
+      elevenlabs: "",
+      unsplash: "",
+      updatedAt: 0,
+    },
     meta: { seededAt: Date.now() },
   };
 }
@@ -213,6 +223,7 @@ function load(): Database {
         ...raw,
         settings: { ...base.settings, ...(raw.settings || {}), chat: { ...base.settings.chat, ...(raw.settings?.chat || {}) }, showSections: { ...base.settings.showSections, ...(raw.settings?.showSections || {}) } },
         analytics: { ...base.analytics, ...(raw.analytics || {}) },
+        secrets: { ...base.secrets, ...(raw.secrets || {}) },
       };
       return merged;
     }

@@ -3,7 +3,7 @@
 // ─── Market Prices tab: full CRUD ────────────────────────────────────────────
 
 import React, { useEffect, useState } from "react";
-import { Plus, Save, Trash2, Pencil, Loader2, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "./api";
 import { ghs, todayISO } from "@/lib/utils";

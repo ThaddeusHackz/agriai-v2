@@ -136,6 +136,17 @@ export interface AppSettings {
   updatedAt: number;
 }
 
+export interface Secrets {
+  gemini: string;
+  cloudflareApi: string;
+  cloudflareAccountId: string;
+  openweather: string;
+  tavily: string;
+  elevenlabs: string;
+  unsplash: string;
+  updatedAt: number;
+}
+
 export interface Analytics {
   visits: { date: string; count: number; unique: number }[];
   questions: { q: string; count: number }[];
@@ -159,5 +170,6 @@ export interface Database {
   subscribers: Subscriber[];
   contacts: ContactEntry[];
   analytics: Analytics;
+  secrets: Secrets;
   meta: { seededAt: number };
 }

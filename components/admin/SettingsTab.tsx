@@ -104,7 +104,45 @@ export default function SettingsTab() {
           </div>
           <div>
             <dt className="label">AI providers</dt>
-            <dd className="text-[var(--text)]">Google Gemini · Cloudflare Workers AI · ElevenLabs · Tavily</dd>
+            <dd className="flex flex-wrap gap-1.5 pt-1">
+              {providers ? (
+                <>
+                  {(
+                    [
+                      { k: "gemini", label: "Gemini" },
+                      { k: "cloudflare", label: "Cloudflare" },
+                      { k: "openweather", label: "OpenWeather" },
+                      { k: "tavily", label: "Tavily" },
+                      { k: "elevenlabs", label: "ElevenLabs" },
+                      { k: "unsplash", label: "Unsplash" },
+                    ] as { k: keyof Providers; label: string }[]
+                  ).map((p) => (
+                    <span
+                      key={p.k}
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-[0.72rem] font-bold border"
+                      style={
+                        providers[p.k]
+                          ? {
+                              background: "rgba(16,185,129,0.12)",
+                              color: "#6ee7a0",
+                              borderColor: "rgba(16,185,129,0.3)",
+                            }
+                          : {
+                              background: "var(--surface)",
+                              color: "var(--muted)",
+                              borderColor: "var(--border)",
+                            }
+                      }
+                    >
+                      {providers[p.k] ? "● " : "○ "}
+                      {p.label}
+                    </span>
+                  ))}
+                </>
+              ) : (
+                <span className="text-[var(--muted)]">Loading…</span>
+              )}
+            </dd>
           </div>
           <div>
             <dt className="label">Weather</dt>

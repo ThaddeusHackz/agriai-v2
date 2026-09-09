@@ -12,6 +12,8 @@ voice via Gemini transcription + ElevenLabs, web search via Tavily.
 - `app/admin/` — admin panel (login + dashboard tabs)
 - `app/api/` — backend routes (chat, search, transcribe, tts, vision, generate,
   weather, prices, feedback, history, subscribe, contact, track, admin/*)
+- `app/api/admin/apikeys` — paste/test/save provider keys (admin only; masked)
+- `lib/probe.ts` — live forensic probes that validate keys against each provider
 - `lib/db.ts` — data engine: seeds `./data/db.json`, mirrors to PostgreSQL
 - `lib/pg-store.ts` — Postgres mirror (DATABASE_URL) with debounced upserts
 - `instrumentation.ts` — boot-time hydration of the document from Postgres
@@ -23,7 +25,9 @@ voice via Gemini transcription + ElevenLabs, web search via Tavily.
 
 ## Rules
 - NEVER commit `.env.local` or `data/` — both gitignored.
-- API keys are read from env only; there are NO hardcoded key fallbacks.
+- API keys resolve from the admin panel's saved secrets first (`db.secrets`,
+  mirrored to PostgreSQL), then from environment variables; there are NO
+  hardcoded key fallbacks. Never return raw keys from any endpoint — always mask.
 - Admin seeding: `ADMIN_EMAIL` / `ADMIN_PASSWORD` env vars (defaults in code).
 - Next.js 16: Turbopack default, async `cookies()`, no `middleware.ts`
   (use `proxy.ts` if ever needed). Google Fonts are loaded via <link> tags.

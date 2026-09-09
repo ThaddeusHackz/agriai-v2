@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Menu, ShieldCheck } from "lucide-react";
 import { useSite } from "@/lib/site-context";
 import Logo3D from "./Logo3D";
 

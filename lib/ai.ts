@@ -5,7 +5,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { getDB } from "./db";
-import { getLanguage, languageInstruction } from "./languages";
+import { getLanguage } from "./languages";
 import { geminiApiKey } from "./env";
 
 let aiClient: GoogleGenAI | null = null;

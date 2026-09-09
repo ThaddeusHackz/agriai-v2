@@ -15,6 +15,7 @@ import UsersTab from "@/components/admin/UsersTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
 import SubscribersTab from "@/components/admin/SubscribersTab";
 import SettingsTab from "@/components/admin/SettingsTab";
+import APIKeysTab from "@/components/admin/APIKeysTab";
 
 export default function AdminPage() {
   const [tab, setTab] = useState<TabKey>("dashboard");
@@ -31,6 +32,7 @@ export default function AdminPage() {
       {tab === "users" && <UsersTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "subscribers" && <SubscribersTab />}
+      {tab === "keys" && <APIKeysTab />}
       {tab === "settings" && <SettingsTab />}
     </AdminShell>
   );
