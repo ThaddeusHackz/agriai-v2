@@ -148,4 +148,4 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Google Ge
 
 ## 👤 Founder
 
-**Thaddeus Nii Teiko Tagoe** — Computer Science student at the University of Ghana, and the sole designer, developer and maintainer of AgriAI. 🇬🇭
+**Thaddeus Nii Teiko Tagoe** — Information Technology student at the University of Ghana, and the sole designer, developer and maintainer of AgriAI. 🇬🇭
